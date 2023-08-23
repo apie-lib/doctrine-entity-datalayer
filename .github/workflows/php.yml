@@ -1,0 +1,52 @@
+name: PHPUnit
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Install PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.1'
+        coverage: pcov
+        ini-values: pcov.directory=src
+    - uses: actions/checkout@v2
+
+    - name: Sleep for 30 seconds
+      uses: jakejarvis/wait-action@master
+      with:
+        time: '30s'
+
+    - name: Validate composer.json
+      run: composer validate
+
+    - name: Install dependencies
+      if: steps.composer-cache.outputs.cache-hit != 'true'
+      run: composer install --prefer-dist --no-progress
+
+    - name: Run test suite
+      run: vendor/bin/phpunit tests --coverage-clover=clover.xml --coverage-html=coverage
+
+    - name: phpunit-coverage-badge
+      uses: timkrase/phpunit-coverage-badge@v1.2.0
+      with:
+        push_badge: true
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+
+    - uses: actions/upload-artifact@v3
+      with:
+        name: Code coverage (HTML)
+        path: coverage
+
+    - uses: actions/upload-artifact@v3
+      with:
+        name: Code coverage (Clover xml)
+        path: clover.xml
