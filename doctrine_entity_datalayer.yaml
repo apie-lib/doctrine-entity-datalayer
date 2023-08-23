@@ -1,0 +1,14 @@
+services:
+  Apie\DoctrineEntityDatalayer\DoctrineEntityDatalayer:
+    arguments:
+      - '@Apie\DoctrineEntityDatalayer\OrmBuilder'
+  Apie\DoctrineEntityDatalayer\OrmBuilder:
+    arguments:
+      - '@Apie\DoctrineEntityConverter\OrmBuilder'
+      - '%apie.doctrine.build_once%'
+      - '%apie.doctrine.run_migrations%'
+      - '%kernel.debug%'
+      - '%kernel.cache_dir%/apie_proxies'
+      - '%kernel.cache_dir%/apie_datalayer'
+      - '%kernel.cache_dir%/apie_entities'
+      - '%apie.doctrine.connection_config%'
