@@ -2,9 +2,12 @@
 namespace Apie\DoctrineEntityDatalayer;
 
 use Apie\Core\BoundedContext\BoundedContext;
+use Apie\Core\Entities\EntityInterface;
 use Apie\Core\Persistence\Lists\PersistenceFieldList;
 use Apie\Core\Persistence\Metadata\EntityMetadata;
+use Apie\DoctrineEntityConverter\Interfaces\GeneratedDoctrineEntityInterface;
 use Apie\DoctrineEntityConverter\OrmBuilder as DoctrineEntityConverterOrmBuilder;
+use Doctrine\Common\Cache\Cache;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
@@ -16,13 +19,16 @@ use RuntimeException;
 
 class OrmBuilder
 {
+    /**
+     * @param array<string, mixed> $connectionConfig
+     */
     public function __construct(
         private readonly DoctrineEntityConverterOrmBuilder $ormBuilder,
         private readonly bool $buildOnce,
         private readonly bool $runMigrations,
         private readonly bool $devMode,
         private readonly ?string $proxyDir,
-        private readonly ?string $cache,
+        private readonly ?Cache $cache,
         private readonly string $path,
         private readonly array $connectionConfig
     ) {
@@ -34,11 +40,11 @@ class OrmBuilder
         return 'Generated\\';
     }
 
-    protected function runMigrations(EntityManagerInterface $entityManager)
+    protected function runMigrations(EntityManagerInterface $entityManager): void
     {
         $tool = new SchemaTool($entityManager);
         $classes = $entityManager->getMetadataFactory()->getAllMetadata();
-        $sql = $tool->getDropDatabaseSQL($classes);
+        $sql = $tool->getDropDatabaseSQL();
         foreach ($sql as $statement) {
             $entityManager->getConnection()->exec($statement);
         }
@@ -49,8 +55,8 @@ class OrmBuilder
     }
 
     /**
-     * @param ReflectionClass<EntityInterface>
-     * @return ReflectionClass<BoundedContext>
+     * @param ReflectionClass<EntityInterface> $class
+     * @return ReflectionClass<GeneratedDoctrineEntityInterface>
      */
     public function toDoctrineClass(ReflectionClass $class, ?BoundedContext $boundedContext = null): ReflectionClass
     {
@@ -61,21 +67,21 @@ class OrmBuilder
                 $class->name,
                 new PersistenceFieldList()
             );
-            return $this->getGeneratedNamespace() . $metadata->getName();
+            return new ReflectionClass($this->getGeneratedNamespace() . $metadata->getName());
         }
         foreach ($manager->getMetadataFactory()->getAllMetadata() as $metadata) {
             $refl = new ReflectionClass($metadata->getName());
             if ($refl->hasMethod('getOriginalClassName')) {
                 $originalClass = $refl->getMethod('getOriginalClassName')->invoke(null);
                 if ($originalClass === $class->name) {
-                    return new ReflectionClass($originalClass);
+                    return $refl;
                 }
             }
         }
         throw new RuntimeException(
             sprintf(
                 'Could not find Doctrine class to handle %s',
-                get_debug_type($originalClass)
+                $class->name
             )
         );
     }

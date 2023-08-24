@@ -37,7 +37,7 @@ class DoctrineEntityDatalayer implements BoundedContextAwareApieDatalayer
     {
         $entityManager = $this->getEntityManager();
         $domainClass = $identifier->getReferenceFor();
-        $doctrineEntityClass = $this->ormBuilder->toDoctrineClass($domainClass, $boundedContext);
+        $doctrineEntityClass = $this->ormBuilder->toDoctrineClass($domainClass, $boundedContext)->name;
         /** @var GeneratedDoctrineEntityInterface $doctrineEntity */
         $doctrineEntity = $entityManager->find($doctrineEntityClass, $identifier->toNative());
         $domainObject = $domainClass->newInstanceWithoutConstructor();
@@ -49,7 +49,7 @@ class DoctrineEntityDatalayer implements BoundedContextAwareApieDatalayer
         $entityManager = $this->getEntityManager();
         $identifier = $entity->getId();
         $domainClass = $identifier->getReferenceFor();
-        $doctrineEntityClass = $this->ormBuilder->toDoctrineClass($domainClass, $boundedContext);
+        $doctrineEntityClass = $this->ormBuilder->toDoctrineClass($domainClass, $boundedContext)->name;
         $doctrineEntity = $doctrineEntityClass::createFrom($entity);
         $entityManager->persist($doctrineEntity);
         $entityManager->flush();
@@ -62,7 +62,7 @@ class DoctrineEntityDatalayer implements BoundedContextAwareApieDatalayer
         $entityManager = $this->getEntityManager();
         $identifier = $entity->getId();
         $domainClass = $identifier->getReferenceFor();
-        $doctrineEntityClass = $this->ormBuilder->toDoctrineClass($domainClass, $boundedContext);
+        $doctrineEntityClass = $this->ormBuilder->toDoctrineClass($domainClass, $boundedContext)->name;
         /** @var GeneratedDoctrineEntityInterface $doctrineEntity */
         $doctrineEntity = $entityManager->find($doctrineEntityClass, $identifier->toNative());
         $doctrineEntity->updateFrom($entity);
