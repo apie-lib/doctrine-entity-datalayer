@@ -12,6 +12,7 @@ services:
       - '%apie.doctrine.run_migrations%'
       - '%kernel.debug%'
       - '%kernel.cache_dir%/apie_proxies'
-      - '@?Doctrine\Common\Cache\Cache'
+      - '@?Psr\Cache\CacheItemPoolInterface'
       - '%kernel.cache_dir%/apie_entities'
       - '%apie.doctrine.connection_params%'
+      - '@?Doctrine\Common\EventManager'

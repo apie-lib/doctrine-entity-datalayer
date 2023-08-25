@@ -7,12 +7,14 @@ use Apie\Core\Persistence\Lists\PersistenceFieldList;
 use Apie\Core\Persistence\Metadata\EntityMetadata;
 use Apie\DoctrineEntityConverter\Interfaces\GeneratedDoctrineEntityInterface;
 use Apie\DoctrineEntityConverter\OrmBuilder as DoctrineEntityConverterOrmBuilder;
-use Doctrine\Common\Cache\Cache;
+use Doctrine\Common\EventManager;
+use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\ORMSetup;
 use Doctrine\ORM\Tools\SchemaTool;
-use Doctrine\ORM\Tools\Setup;
 use FilesystemIterator;
+use Psr\Cache\CacheItemPoolInterface;
 use RecursiveDirectoryIterator;
 use ReflectionClass;
 use RuntimeException;
@@ -29,9 +31,10 @@ class OrmBuilder
         private readonly bool $runMigrations,
         private readonly bool $devMode,
         private readonly ?string $proxyDir,
-        private readonly ?Cache $cache,
+        private readonly ?CacheItemPoolInterface $cache,
         private readonly string $path,
-        private readonly array $connectionConfig
+        private readonly array $connectionConfig,
+        private readonly ?EventManager $eventManager
     ) {
 
     }
@@ -102,14 +105,15 @@ class OrmBuilder
         if (!$this->buildOnce || $this->isEmptyPath()) {
             $this->ormBuilder->createOrm($this->path);
         }
-        $config = Setup::createAttributeMetadataConfiguration(
+        $config = ORMSetup::createAttributeMetadataConfiguration(
             [$this->path],
             $this->devMode,
             $this->proxyDir,
             $this->cache
         );
         if (!$this->createdEntityManager) {
-            $this->createdEntityManager = EntityManager::create($this->connectionConfig, $config);
+            $connection = DriverManager::getConnection($this->connectionConfig, $config, $this->eventManager ?? new EventManager());
+            $this->createdEntityManager = new EntityManager($connection, $config);
             if ($this->runMigrations) {
                 $this->runMigrations($this->createdEntityManager);
             }

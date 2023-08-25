@@ -39,9 +39,10 @@ class DoctrineEntityDatalayerServiceProvider extends ServiceProvider
                     $this->parseArgument('%apie.doctrine.run_migrations%'),
                     $this->parseArgument('%kernel.debug%'),
                     $this->parseArgument('%kernel.cache_dir%/apie_proxies'),
-                    $app->bound(\Doctrine\Common\Cache\Cache::class) ? $app->make(\Doctrine\Common\Cache\Cache::class) : null,
+                    $app->bound(\Psr\Cache\CacheItemPoolInterface::class) ? $app->make(\Psr\Cache\CacheItemPoolInterface::class) : null,
                     $this->parseArgument('%kernel.cache_dir%/apie_entities'),
-                    $this->parseArgument('%apie.doctrine.connection_params%')
+                    $this->parseArgument('%apie.doctrine.connection_params%'),
+                    $app->bound(\Doctrine\Common\EventManager::class) ? $app->make(\Doctrine\Common\EventManager::class) : null
                 );
             }
         );
