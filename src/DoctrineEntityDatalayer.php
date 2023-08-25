@@ -8,6 +8,8 @@ use Apie\Core\Datalayers\ValueObjects\LazyLoadedListIdentifier;
 use Apie\Core\Entities\EntityInterface;
 use Apie\Core\Identifiers\IdentifierInterface;
 use Apie\DoctrineEntityConverter\Interfaces\GeneratedDoctrineEntityInterface;
+use Apie\DoctrineEntityDatalayer\Exceptions\InsertConflict;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use ReflectionClass;
 
@@ -52,7 +54,11 @@ class DoctrineEntityDatalayer implements BoundedContextAwareApieDatalayer
         $doctrineEntityClass = $this->ormBuilder->toDoctrineClass($domainClass, $boundedContext)->name;
         $doctrineEntity = $doctrineEntityClass::createFrom($entity);
         $entityManager->persist($doctrineEntity);
-        $entityManager->flush();
+        try {
+            $entityManager->flush();
+        } catch (UniqueConstraintViolationException $uniqueConstraintViolation) {
+            throw new InsertConflict($uniqueConstraintViolation);
+        }
 
         $doctrineEntity->inject($entity);
         return $entity;
