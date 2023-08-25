@@ -19,6 +19,7 @@ use RuntimeException;
 
 class OrmBuilder
 {
+    private ?EntityManagerInterface $createdEntityManager = null;
     /**
      * @param array<string, mixed> $connectionConfig
      */
@@ -67,6 +68,7 @@ class OrmBuilder
                 $class->name,
                 new PersistenceFieldList()
             );
+            $manager->getMetadataFactory()->getAllMetadata();
             return new ReflectionClass($this->getGeneratedNamespace() . $metadata->getName());
         }
         foreach ($manager->getMetadataFactory()->getAllMetadata() as $metadata) {
@@ -106,11 +108,13 @@ class OrmBuilder
             $this->proxyDir,
             $this->cache
         );
-
-        $result = EntityManager::create($this->connectionConfig, $config);
-        if ($this->runMigrations) {
-            $this->runMigrations($result);
+        if (!$this->createdEntityManager) {
+            $this->createdEntityManager = EntityManager::create($this->connectionConfig, $config);
+            if ($this->runMigrations) {
+                $this->runMigrations($this->createdEntityManager);
+            }
         }
-        return $result;
+        
+        return $this->createdEntityManager;
     }
 }

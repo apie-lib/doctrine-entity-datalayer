@@ -2,13 +2,16 @@ services:
   Apie\DoctrineEntityDatalayer\DoctrineEntityDatalayer:
     arguments:
       - '@Apie\DoctrineEntityDatalayer\OrmBuilder'
+    tags:
+      - apie.datalayer
   Apie\DoctrineEntityDatalayer\OrmBuilder:
+    public: true
     arguments:
       - '@Apie\DoctrineEntityConverter\OrmBuilder'
       - '%apie.doctrine.build_once%'
       - '%apie.doctrine.run_migrations%'
       - '%kernel.debug%'
       - '%kernel.cache_dir%/apie_proxies'
-      - '%kernel.cache_dir%/apie_datalayer'
+      - '@?Doctrine\Common\Cache\Cache'
       - '%kernel.cache_dir%/apie_entities'
-      - '%apie.doctrine.connection_config%'
+      - '%apie.doctrine.connection_params%'

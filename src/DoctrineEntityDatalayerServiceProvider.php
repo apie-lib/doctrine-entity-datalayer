@@ -22,6 +22,14 @@ class DoctrineEntityDatalayerServiceProvider extends ServiceProvider
                 );
             }
         );
+        \Apie\ServiceProviderGenerator\TagMap::register(
+            $this->app,
+            \Apie\DoctrineEntityDatalayer\DoctrineEntityDatalayer::class,
+            array(
+              0 => 'apie.datalayer',
+            )
+        );
+        $this->app->tag([\Apie\DoctrineEntityDatalayer\DoctrineEntityDatalayer::class], 'apie.datalayer');
         $this->app->singleton(
             \Apie\DoctrineEntityDatalayer\OrmBuilder::class,
             function ($app) {
@@ -31,9 +39,9 @@ class DoctrineEntityDatalayerServiceProvider extends ServiceProvider
                     $this->parseArgument('%apie.doctrine.run_migrations%'),
                     $this->parseArgument('%kernel.debug%'),
                     $this->parseArgument('%kernel.cache_dir%/apie_proxies'),
-                    $this->parseArgument('%kernel.cache_dir%/apie_datalayer'),
+                    $app->bound(\Doctrine\Common\Cache\Cache::class) ? $app->make(\Doctrine\Common\Cache\Cache::class) : null,
                     $this->parseArgument('%kernel.cache_dir%/apie_entities'),
-                    $this->parseArgument('%apie.doctrine.connection_config%')
+                    $this->parseArgument('%apie.doctrine.connection_params%')
                 );
             }
         );
