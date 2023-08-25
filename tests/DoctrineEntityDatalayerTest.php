@@ -50,7 +50,8 @@ class DoctrineEntityDatalayerTest extends TestCase
                     connectionConfig: [
                         'driver' => 'pdo_sqlite',
                         'memory' => true
-                    ]
+                    ],
+                    eventManager: null
                 ),
             );
             $entity = new UserWithAddress(
