@@ -24,7 +24,7 @@
     "apie/core": "self.version",
     "apie/doctrine-entity-converter": "self.version",
     "doctrine/common": "^3.4.3",
-    "doctrine/orm": "^2.12"
+    "doctrine/orm": "^2.16"
   },
   "require-dev": {
     "phpunit/phpunit": "^9.5",

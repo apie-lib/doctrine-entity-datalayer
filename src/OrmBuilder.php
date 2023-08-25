@@ -111,7 +111,7 @@ class OrmBuilder
             $this->proxyDir,
             $this->cache
         );
-        if (!$this->createdEntityManager) {
+        if (!$this->createdEntityManager || !$this->createdEntityManager->isOpen()) {
             $connection = DriverManager::getConnection($this->connectionConfig, $config, $this->eventManager ?? new EventManager());
             $this->createdEntityManager = new EntityManager($connection, $config);
             if ($this->runMigrations) {
