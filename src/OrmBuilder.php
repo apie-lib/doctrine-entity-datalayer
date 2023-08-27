@@ -105,10 +105,14 @@ class OrmBuilder
     private function isEmptyPath(): bool
     {
         if (!file_exists($this->path) || !is_dir($this->path)) {
-            return false;
+            return true;
         }
         $di = new RecursiveDirectoryIterator($this->path, FilesystemIterator::SKIP_DOTS);
-        return iterator_count($di) === 0;
+        foreach ($di as $ignored) {
+            return false;
+        }
+
+        return true;
     }
 
     public function createEntityManager(): EntityManagerInterface
