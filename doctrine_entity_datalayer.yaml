@@ -16,4 +16,4 @@ services:
       - '%kernel.cache_dir%/apie_entities'
       - '%apie.doctrine.connection_params%'
       - '@?Doctrine\Common\EventManager'
-      - '@?Doctrine\Bundle\DoctrineBundle\Middleware\DebugMiddleware'
+      - '@?doctrine.dbal.debug_middleware'
