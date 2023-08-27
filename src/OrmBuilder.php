@@ -8,6 +8,7 @@ use Apie\Core\Persistence\Metadata\EntityMetadata;
 use Apie\DoctrineEntityConverter\Interfaces\GeneratedDoctrineEntityInterface;
 use Apie\DoctrineEntityConverter\OrmBuilder as DoctrineEntityConverterOrmBuilder;
 use Apie\DoctrineEntityDatalayer\Exceptions\CouldNotUpdateDatabaseAutomatically;
+use Doctrine\Bundle\DoctrineBundle\Middleware\DebugMiddleware;
 use Doctrine\Common\EventManager;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Exception\DriverException;
@@ -36,9 +37,9 @@ class OrmBuilder
         private readonly ?CacheItemPoolInterface $cache,
         private readonly string $path,
         private readonly array $connectionConfig,
-        private readonly ?EventManager $eventManager
+        private readonly ?EventManager $eventManager = null,
+        private readonly ?DebugMiddleware $debugMiddleware = null
     ) {
-
     }
 
     public function getGeneratedNamespace(): string
@@ -121,6 +122,11 @@ class OrmBuilder
             $this->proxyDir,
             $this->cache
         );
+        if ($this->debugMiddleware) {
+            $config->setMiddlewares([
+                $this->debugMiddleware
+            ]);
+        }
         if (!$this->createdEntityManager || !$this->createdEntityManager->isOpen()) {
             $connection = DriverManager::getConnection($this->connectionConfig, $config, $this->eventManager ?? new EventManager());
             $this->createdEntityManager = new EntityManager($connection, $config);
