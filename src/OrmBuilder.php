@@ -30,8 +30,8 @@ class OrmBuilder
      */
     public function __construct(
         private readonly DoctrineEntityConverterOrmBuilder $ormBuilder,
-        private readonly bool $buildOnce,
-        private readonly bool $runMigrations,
+        private bool $buildOnce,
+        private bool $runMigrations,
         private readonly bool $devMode,
         private readonly ?string $proxyDir,
         private readonly ?CacheItemPoolInterface $cache,
@@ -67,6 +67,7 @@ class OrmBuilder
             }
             throw new CouldNotUpdateDatabaseAutomatically($driverException);
         }
+        $this->runMigrations = false;
     }
 
     /**
@@ -119,6 +120,7 @@ class OrmBuilder
     {
         if (!$this->buildOnce || $this->isEmptyPath()) {
             $this->ormBuilder->createOrm($this->path);
+            $this->buildOnce = true;
         }
         $config = ORMSetup::createAttributeMetadataConfiguration(
             [$this->path],
