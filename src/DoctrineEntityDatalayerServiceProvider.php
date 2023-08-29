@@ -18,7 +18,8 @@ class DoctrineEntityDatalayerServiceProvider extends ServiceProvider
             \Apie\DoctrineEntityDatalayer\DoctrineEntityDatalayer::class,
             function ($app) {
                 return new \Apie\DoctrineEntityDatalayer\DoctrineEntityDatalayer(
-                    $app->make(\Apie\DoctrineEntityDatalayer\OrmBuilder::class)
+                    $app->make(\Apie\DoctrineEntityDatalayer\OrmBuilder::class),
+                    $app->make(\Apie\Core\Indexing\Indexer::class)
                 );
             }
         );
@@ -43,7 +44,7 @@ class DoctrineEntityDatalayerServiceProvider extends ServiceProvider
                     $this->parseArgument('%kernel.cache_dir%/apie_entities'),
                     $this->parseArgument('%apie.doctrine.connection_params%'),
                     $app->bound(\Doctrine\Common\EventManager::class) ? $app->make(\Doctrine\Common\EventManager::class) : null,
-                    $app->bound(\Doctrine\Bundle\DoctrineBundle\Middleware\DebugMiddleware::class) ? $app->make(\Doctrine\Bundle\DoctrineBundle\Middleware\DebugMiddleware::class) : null
+                    $app->bound('doctrine.dbal.debug_middleware.default') ? $app->make('doctrine.dbal.debug_middleware.default') : null
                 );
             }
         );

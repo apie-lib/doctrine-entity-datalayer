@@ -2,6 +2,7 @@ services:
   Apie\DoctrineEntityDatalayer\DoctrineEntityDatalayer:
     arguments:
       - '@Apie\DoctrineEntityDatalayer\OrmBuilder'
+      - '@Apie\Core\Indexing\Indexer'
     tags:
       - apie.datalayer
   Apie\DoctrineEntityDatalayer\OrmBuilder:

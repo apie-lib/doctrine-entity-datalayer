@@ -1,6 +1,7 @@
 <?php
 namespace Apie\Tests\DoctrineEntityDatalayer;
 
+use Apie\Core\Indexing\Indexer;
 use Apie\Core\Persistence\PersistenceLayerFactory;
 use Apie\Core\Persistence\PersistenceMetadataFactory;
 use Apie\DoctrineEntityConverter\EntityBuilder;
@@ -53,6 +54,7 @@ class DoctrineEntityDatalayerTest extends TestCase
                     ],
                     eventManager: null
                 ),
+                new Indexer()
             );
             $entity = new UserWithAddress(
                 AddressWithZipcodeCheck::fromNative([
