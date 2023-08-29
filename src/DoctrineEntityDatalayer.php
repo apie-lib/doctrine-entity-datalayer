@@ -29,7 +29,7 @@ class DoctrineEntityDatalayer implements BoundedContextAwareApieDatalayer
 
     private function getEntityManager(): EntityManagerInterface
     {
-        if (!isset($this->entityManager)) {
+        if (!isset($this->entityManager) || !$this->entityManager->isOpen()) {
             $this->entityManager = $this->ormBuilder->createEntityManager();
         }
 
