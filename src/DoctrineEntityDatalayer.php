@@ -112,7 +112,7 @@ class DoctrineEntityDatalayer implements BoundedContextAwareApieDatalayer
         EntityInterface $entity
     ): void {
         $currentIndex = $doctrineEntity->_indexTable ?? new ArrayCollection([]);
-        $newIndexes = $this->indexer->getIndexesForEntity(
+        $newIndexes = $this->indexer->getIndexesForObject(
             $entity,
             new ApieContext()
         );
