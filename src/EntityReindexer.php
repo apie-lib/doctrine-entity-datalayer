@@ -7,9 +7,7 @@ use Apie\Core\Indexing\Indexer;
 use Apie\DoctrineEntityConverter\Interfaces\GeneratedDoctrineEntityInterface;
 use Apie\DoctrineEntityConverter\PropertyGenerators\ManyToEntityReferencePropertyGenerator;
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\DBAL\ArrayParameterType;
-use Doctrine\DBAL\Exception\DriverException;
-use Doctrine\DBAL\ParameterType;
+use Doctrine\DBAL\Platforms\SqlitePlatform;
 use Doctrine\ORM\Mapping\OneToMany;
 use LogicException;
 use ReflectionClass;
@@ -113,45 +111,17 @@ final class EntityReindexer
             'SELECT documents_with_term FROM (SELECT text, COUNT(DISTINCT entity_id) AS documents_with_term FROM %s GROUP BY text) AS sub WHERE sub.text',
             $tableName
         );
-        try {
-            $query = sprintf(
-                'UPDATE %s AS t
-            SET idf = LOG((%s)/(%s = t.text))
-            WHERE t.text IN (?) AND EXISTS (SELECT 1 FROM (SELECT text, COUNT(DISTINCT entity_id) AS documents_with_term FROM %s GROUP BY text) AS sub WHERE sub.text = t.text);',
-                $tableName,
-                $totalDocumentQuery,
-                $documentWithTermQuery,
-                $tableName
-            );
-            $entityManager->getConnection()
-                ->executeQuery(
-                    $query,
-                    [$termsToUpdate],
-                    [ArrayParameterType::STRING]
-                );
-        } catch (DriverException) {
-            // TODO fallback
-            $entityManager = $this->ormBuilder->createEntityManager();
-            $connection = $entityManager->getConnection();
-            $totalDocumentCount = $connection->prepare($totalDocumentQuery)->executeQuery()->fetchOne();
-            $documentTermCount = $connection->
-                executeQuery(
-                    str_replace('SELECT ', 'SELECT text, ', $documentWithTermQuery . ' IN (?)'),
-                    [$termsToUpdate],
-                    [ArrayParameterType::STRING],
-                )->fetchAllAssociativeIndexed();
-            foreach ($documentTermCount as $searchTerm => $rowResult) {
-                $idf = log10((1 + $totalDocumentCount) / (1 + $rowResult["documents_with_term"]));
-                $query = sprintf(
-                    'UPDATE %s SET idf = ? WHERE text = ?',
-                    $tableName
-                );
-                $connection->executeQuery(
-                    $query,
-                    [$idf, $searchTerm],
-                    [ParameterType::STRING, ParameterType::STRING]
-                );
-            }
-        }
+        $connection = $entityManager->getConnection();
+        $query = sprintf(
+            'UPDATE %s AS t
+            SET idf = %s((%s)/(%s = t.text))
+            WHERE EXISTS (SELECT 1 FROM (SELECT text, COUNT(DISTINCT entity_id) AS documents_with_term FROM %s GROUP BY text) AS sub WHERE sub.text = t.text);',
+            $tableName,
+            $connection->getDatabasePlatform() instanceof SqlitePlatform ? '' : 'log',
+            $totalDocumentQuery,
+            $documentWithTermQuery,
+            $tableName
+        );
+        $connection->executeQuery($query);
     }
 }
