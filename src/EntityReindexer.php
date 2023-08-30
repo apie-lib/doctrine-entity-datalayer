@@ -95,6 +95,9 @@ final class EntityReindexer
         $this->recalculateIdf($doctrineEntity, $termsToUpdate);
     }
 
+    /**
+     * @param array<int, string> $termsToUpdate
+     */
     private function recalculateIdf(GeneratedDoctrineEntityInterface $doctrineEntity, array $termsToUpdate): void
     {
         if (empty($termsToUpdate)) {
