@@ -15,11 +15,20 @@ class DoctrineEntityDatalayerServiceProvider extends ServiceProvider
     public function register()
     {
         $this->app->singleton(
+            \Apie\DoctrineEntityDatalayer\EntityReindexer::class,
+            function ($app) {
+                return new \Apie\DoctrineEntityDatalayer\EntityReindexer(
+                    $app->make(\Apie\DoctrineEntityDatalayer\OrmBuilder::class),
+                    $app->make(\Apie\Core\Indexing\Indexer::class)
+                );
+            }
+        );
+        $this->app->singleton(
             \Apie\DoctrineEntityDatalayer\DoctrineEntityDatalayer::class,
             function ($app) {
                 return new \Apie\DoctrineEntityDatalayer\DoctrineEntityDatalayer(
                     $app->make(\Apie\DoctrineEntityDatalayer\OrmBuilder::class),
-                    $app->make(\Apie\Core\Indexing\Indexer::class)
+                    $app->make(\Apie\DoctrineEntityDatalayer\EntityReindexer::class)
                 );
             }
         );

@@ -2,28 +2,22 @@
 namespace Apie\DoctrineEntityDatalayer;
 
 use Apie\Core\BoundedContext\BoundedContext;
-use Apie\Core\Context\ApieContext;
 use Apie\Core\Datalayers\BoundedContextAwareApieDatalayer;
 use Apie\Core\Datalayers\Lists\LazyLoadedList;
 use Apie\Core\Datalayers\ValueObjects\LazyLoadedListIdentifier;
 use Apie\Core\Entities\EntityInterface;
 use Apie\Core\Identifiers\IdentifierInterface;
-use Apie\Core\Indexing\Indexer;
 use Apie\DoctrineEntityConverter\Interfaces\GeneratedDoctrineEntityInterface;
 use Apie\DoctrineEntityDatalayer\Exceptions\InsertConflict;
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Mapping\OneToMany;
-use LogicException;
 use ReflectionClass;
-use ReflectionProperty;
 
 class DoctrineEntityDatalayer implements BoundedContextAwareApieDatalayer
 {
     private ?EntityManagerInterface $entityManager = null;
 
-    public function __construct(private readonly OrmBuilder $ormBuilder, private readonly Indexer $indexer)
+    public function __construct(private readonly OrmBuilder $ormBuilder, private readonly EntityReindexer $entityReindexer)
     {
     }
 
@@ -67,7 +61,7 @@ class DoctrineEntityDatalayer implements BoundedContextAwareApieDatalayer
         }
 
         $doctrineEntity->inject($entity);
-        $this->updateIndex($entityManager, $doctrineEntity, $entity);
+        $this->entityReindexer->updateIndex($doctrineEntity, $entity);
         return $entity;
     }
     
@@ -84,54 +78,8 @@ class DoctrineEntityDatalayer implements BoundedContextAwareApieDatalayer
         $entityManager->flush();
 
         $doctrineEntity->inject($entity);
-        $this->updateIndex($entityManager, $doctrineEntity, $entity);
+        $this->entityReindexer->updateIndex($doctrineEntity, $entity);
         return $entity;
 
-    }
-
-    private function createIndexClass(GeneratedDoctrineEntityInterface $doctrineEntity, string $text, float $priority): GeneratedDoctrineEntityInterface
-    {
-        $refl = new ReflectionClass($doctrineEntity);
-
-        $property = new ReflectionProperty($doctrineEntity, '_indexTable');
-        $attributes = $property->getAttributes(OneToMany::class);
-        foreach ($attributes as $attribute) {
-            $className = $refl->getNamespaceName() . '\\' . $attribute->newInstance()->targetEntity;
-            $res = new $className;
-            $res->text = $text;
-            $res->priority = $priority;
-            $res->entity = $doctrineEntity;
-            return $res;
-        }
-        throw new LogicException('The _indexTable property should have a OneToMany attribute');
-    }
-
-    private function updateIndex(
-        EntityManagerInterface $entityManager,
-        GeneratedDoctrineEntityInterface $doctrineEntity,
-        EntityInterface $entity
-    ): void {
-        $currentIndex = $doctrineEntity->_indexTable ?? new ArrayCollection([]);
-        $newIndexes = $this->indexer->getIndexesForObject(
-            $entity,
-            new ApieContext()
-        );
-        $offset = 0;
-        foreach ($newIndexes as $text => $priority) {
-            if (isset($currentIndex[$offset])) {
-                $currentIndex[$offset]->text = $text;
-                $currentIndex[$offset]->priority = $priority;
-            } else {
-                $currentIndex[$offset] = $this->createIndexClass($doctrineEntity, $text, $priority);
-                $entityManager->persist($currentIndex[$offset]);
-            }
-            $offset++;
-        }
-        $count = count($currentIndex);
-        for (;$offset < $count; $offset++) {
-            $entityManager->remove($currentIndex[$offset]);
-        }
-        $doctrineEntity->_indexTable = $currentIndex;
-        $entityManager->flush();
     }
 }
