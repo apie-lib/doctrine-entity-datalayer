@@ -7,6 +7,7 @@ use Apie\Core\Persistence\PersistenceMetadataFactory;
 use Apie\DoctrineEntityConverter\EntityBuilder;
 use Apie\DoctrineEntityConverter\OrmBuilder as DoctrineEntityConverterOrmBuilder;
 use Apie\DoctrineEntityDatalayer\DoctrineEntityDatalayer;
+use Apie\DoctrineEntityDatalayer\EntityReindexer;
 use Apie\DoctrineEntityDatalayer\OrmBuilder;
 use Apie\Fixtures\BoundedContextFactory;
 use Apie\Fixtures\Entities\UserWithAddress;
@@ -39,22 +40,23 @@ class DoctrineEntityDatalayerTest extends TestCase
                 BoundedContextFactory::createHashmap(),
                 true
             );
+            $ormBuilder = new OrmBuilder(
+                $ormBuilder,
+                buildOnce: true,
+                runMigrations: true,
+                devMode: true,
+                proxyDir: $proxyPath,
+                cache: null,
+                path: $entityPath,
+                connectionConfig: [
+                    'driver' => 'pdo_sqlite',
+                    'memory' => true
+                ],
+                eventManager: null
+            );
             $testItem = new DoctrineEntityDatalayer(
-                new OrmBuilder(
-                    $ormBuilder,
-                    buildOnce: true,
-                    runMigrations: true,
-                    devMode: true,
-                    proxyDir: $proxyPath,
-                    cache: null,
-                    path: $entityPath,
-                    connectionConfig: [
-                        'driver' => 'pdo_sqlite',
-                        'memory' => true
-                    ],
-                    eventManager: null
-                ),
-                new Indexer()
+                $ormBuilder,
+                new EntityReindexer($ormBuilder, Indexer::create())
             );
             $entity = new UserWithAddress(
                 AddressWithZipcodeCheck::fromNative([
