@@ -4,11 +4,11 @@ namespace Apie\DoctrineEntityDatalayer;
 use Apie\Core\BoundedContext\BoundedContext;
 use Apie\Core\Datalayers\BoundedContextAwareApieDatalayer;
 use Apie\Core\Datalayers\Lists\LazyLoadedList;
-use Apie\Core\Datalayers\ValueObjects\LazyLoadedListIdentifier;
 use Apie\Core\Entities\EntityInterface;
 use Apie\Core\Identifiers\IdentifierInterface;
 use Apie\DoctrineEntityConverter\Interfaces\GeneratedDoctrineEntityInterface;
 use Apie\DoctrineEntityDatalayer\Exceptions\InsertConflict;
+use Apie\DoctrineEntityDatalayer\Factories\DoctrineListFactory;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use ReflectionClass;
@@ -17,8 +17,11 @@ class DoctrineEntityDatalayer implements BoundedContextAwareApieDatalayer
 {
     private ?EntityManagerInterface $entityManager = null;
 
-    public function __construct(private readonly OrmBuilder $ormBuilder, private readonly EntityReindexer $entityReindexer)
-    {
+    public function __construct(
+        private readonly OrmBuilder $ormBuilder,
+        private readonly EntityReindexer $entityReindexer,
+        private readonly DoctrineListFactory $doctrineListFactory
+    ) {
     }
 
     private function getEntityManager(): EntityManagerInterface
@@ -32,9 +35,13 @@ class DoctrineEntityDatalayer implements BoundedContextAwareApieDatalayer
 
     public function all(ReflectionClass $class, ?BoundedContext $boundedContext = null): LazyLoadedList
     {
-        // TODO
-        return LazyLoadedList::createFromArray(LazyLoadedListIdentifier::createFrom($boundedContext->getId(), $class), []);
+        return $this->doctrineListFactory->createFor(
+            $class,
+            $this->ormBuilder->toDoctrineClass($class, $boundedContext),
+            $boundedContext->getId()
+        );
     }
+
     public function find(IdentifierInterface $identifier, ?BoundedContext $boundedContext = null): EntityInterface
     {
         $entityManager = $this->getEntityManager();

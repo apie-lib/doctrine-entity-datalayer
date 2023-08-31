@@ -8,6 +8,8 @@ use Apie\DoctrineEntityConverter\EntityBuilder;
 use Apie\DoctrineEntityConverter\OrmBuilder as DoctrineEntityConverterOrmBuilder;
 use Apie\DoctrineEntityDatalayer\DoctrineEntityDatalayer;
 use Apie\DoctrineEntityDatalayer\EntityReindexer;
+use Apie\DoctrineEntityDatalayer\Factories\DoctrineListFactory;
+use Apie\DoctrineEntityDatalayer\Factories\EntityQueryFilterFactory;
 use Apie\DoctrineEntityDatalayer\OrmBuilder;
 use Apie\Fixtures\BoundedContextFactory;
 use Apie\Fixtures\Entities\UserWithAddress;
@@ -54,9 +56,14 @@ class DoctrineEntityDatalayerTest extends TestCase
                 ],
                 eventManager: null
             );
+            $doctrineListFactory = new DoctrineListFactory(
+                $ormBuilder,
+                new EntityQueryFilterFactory()
+            );
             $testItem = new DoctrineEntityDatalayer(
                 $ormBuilder,
-                new EntityReindexer($ormBuilder, Indexer::create())
+                new EntityReindexer($ormBuilder, Indexer::create()),
+                $doctrineListFactory
             );
             $entity = new UserWithAddress(
                 AddressWithZipcodeCheck::fromNative([

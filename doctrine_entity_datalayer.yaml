@@ -4,10 +4,18 @@ services:
       - '@Apie\DoctrineEntityDatalayer\OrmBuilder'
       - '@Apie\Core\Indexing\Indexer'
 
+  Apie\DoctrineEntityDatalayer\Factories\DoctrineListFactory:
+    arguments:
+      - '@Apie\DoctrineEntityDatalayer\OrmBuilder'
+      - '@Apie\DoctrineEntityDatalayer\Factories\EntityQueryFilterFactory'
+
+  Apie\DoctrineEntityDatalayer\Factories\EntityQueryFilterFactory:
+
   Apie\DoctrineEntityDatalayer\DoctrineEntityDatalayer:
     arguments:
       - '@Apie\DoctrineEntityDatalayer\OrmBuilder'
       - '@Apie\DoctrineEntityDatalayer\EntityReindexer'
+      - '@Apie\DoctrineEntityDatalayer\Factories\DoctrineListFactory'
     tags:
       - apie.datalayer
   Apie\DoctrineEntityDatalayer\OrmBuilder:

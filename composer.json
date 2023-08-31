@@ -21,6 +21,7 @@
   },
   "require": {
     "php": ">=8.1",
+    "apie/count-words": "self.version",
     "apie/core": "self.version",
     "apie/doctrine-entity-converter": "self.version",
     "doctrine/common": "^3.4.3",

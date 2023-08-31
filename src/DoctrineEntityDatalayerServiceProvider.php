@@ -24,11 +24,29 @@ class DoctrineEntityDatalayerServiceProvider extends ServiceProvider
             }
         );
         $this->app->singleton(
+            \Apie\DoctrineEntityDatalayer\Factories\DoctrineListFactory::class,
+            function ($app) {
+                return new \Apie\DoctrineEntityDatalayer\Factories\DoctrineListFactory(
+                    $app->make(\Apie\DoctrineEntityDatalayer\OrmBuilder::class),
+                    $app->make(\Apie\DoctrineEntityDatalayer\Factories\EntityQueryFilterFactory::class)
+                );
+            }
+        );
+        $this->app->singleton(
+            \Apie\DoctrineEntityDatalayer\Factories\EntityQueryFilterFactory::class,
+            function ($app) {
+                return new \Apie\DoctrineEntityDatalayer\Factories\EntityQueryFilterFactory(
+                
+                );
+            }
+        );
+        $this->app->singleton(
             \Apie\DoctrineEntityDatalayer\DoctrineEntityDatalayer::class,
             function ($app) {
                 return new \Apie\DoctrineEntityDatalayer\DoctrineEntityDatalayer(
                     $app->make(\Apie\DoctrineEntityDatalayer\OrmBuilder::class),
-                    $app->make(\Apie\DoctrineEntityDatalayer\EntityReindexer::class)
+                    $app->make(\Apie\DoctrineEntityDatalayer\EntityReindexer::class),
+                    $app->make(\Apie\DoctrineEntityDatalayer\Factories\DoctrineListFactory::class)
                 );
             }
         );
