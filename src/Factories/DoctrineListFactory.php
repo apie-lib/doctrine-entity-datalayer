@@ -35,7 +35,6 @@ final class DoctrineListFactory
         return new DoctrineEntityList(
             $this->ormBuilder,
             $entityQueryFactory,
-            $doctrineEntityClass,
             $entityClass,
             $boundedContextId
         );

@@ -7,6 +7,7 @@ use Apie\Core\Datalayers\Lists\EntityListInterface;
 use Apie\Core\Datalayers\Lists\PaginatedResult;
 use Apie\Core\Datalayers\Search\QuerySearch;
 use Apie\Core\Datalayers\ValueObjects\LazyLoadedListIdentifier;
+use Apie\Core\Entities\EntityInterface;
 use Apie\Core\Lists\ItemList;
 use Apie\Core\Utils\ConverterUtils;
 use Apie\DoctrineEntityConverter\Interfaces\GeneratedDoctrineEntityInterface;
@@ -20,15 +21,18 @@ use Doctrine\ORM\Query\ResultSetMappingBuilder;
 use Iterator;
 use ReflectionClass;
 
+/**
+ * @template T of EntityInterface
+ * @implements EntityListInterface<T>
+ */
 final class DoctrineEntityList implements EntityListInterface
 {
     /**
-     * @param ReflectionClass<GeneratedDoctrineEntityInterface> $doctrineEntityClass
+     * @param ReflectionClass<T> $entityClass
      */
     public function __construct(
         private readonly OrmBuilder $ormBuilder,
         private readonly EntityQueryFactory $entityQueryFactory,
-        private readonly ReflectionClass $doctrineEntityClass,
         private readonly ReflectionClass $entityClass,
         private readonly BoundedContextId $boundedContextId
     ) {
@@ -36,7 +40,7 @@ final class DoctrineEntityList implements EntityListInterface
 
     public function getIterator(): Iterator
     {
-        $query = $this->createNativeQuery(new QuerySearch(), noPagination: true);
+        $query = $this->createNativeQuery(new QuerySearch(0), noPagination: true);
         /** @var GeneratedDoctrineEntityInterface $rowResult */
         foreach ($query->toIterable() as $rowResult) {
             yield ConverterUtils::dynamicCast($rowResult, ReflectionTypeFactory::createReflectionType($this->entityClass->name));
