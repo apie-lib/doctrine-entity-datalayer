@@ -22,7 +22,7 @@ final class FieldTextSearchFilter implements FieldSearchFilterInterface
     {
         return 'entity.'
             . $this->propertyName
-            . ' = '
+            . ' LIKE '
             . $connection->quote(LikeUtils::toLikeString($querySearch->getSearches()[$this->filterName]));
     }
 }
