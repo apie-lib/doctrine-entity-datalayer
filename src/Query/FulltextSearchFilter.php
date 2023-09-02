@@ -31,7 +31,7 @@ final class FulltextSearchFilter implements TextSearchFilterInterface, AddsJoinF
         }
         $whereStatement = array_map(
             function (string $word) use ($connection) {
-                return 'text LIKE "' . $connection->quote(LikeUtils::toLikeString($word)) . '"';
+                return 'text LIKE ' . $connection->quote(LikeUtils::toLikeString($word));
             },
             $words
         );

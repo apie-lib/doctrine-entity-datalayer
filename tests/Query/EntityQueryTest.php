@@ -22,7 +22,7 @@ class EntityQueryTest extends TestCase
     private function createFakeManager(): EntityManagerInterface
     {
         $connection = $this->prophesize(Connection::class);
-        $connection->quote(Argument::type('string'))->willReturnArgument(0);
+        $connection->quote(Argument::type('string'))->will(function (array $args) { return '"' . $args[0] . '"'; });
 
         $manager = $this->prophesize(EntityManagerInterface::class);
         $manager->getConnection()->willReturn($connection->reveal());
