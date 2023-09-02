@@ -2,13 +2,10 @@
 namespace Apie\DoctrineEntityDatalayer\Factories;
 
 use Apie\Core\BoundedContext\BoundedContextId;
-use Apie\Core\Datalayers\Lists\LazyLoadedList;
-use Apie\Core\Datalayers\ValueObjects\LazyLoadedListIdentifier;
+use Apie\Core\Datalayers\Lists\EntityListInterface;
 use Apie\Core\Entities\EntityInterface;
 use Apie\DoctrineEntityConverter\Interfaces\GeneratedDoctrineEntityInterface;
-use Apie\DoctrineEntityDatalayer\Lists\CountDoctrineItems;
-use Apie\DoctrineEntityDatalayer\Lists\GetDoctrineItem;
-use Apie\DoctrineEntityDatalayer\Lists\TakeDoctrineItem;
+use Apie\DoctrineEntityDatalayer\Lists\DoctrineEntityList;
 use Apie\DoctrineEntityDatalayer\OrmBuilder;
 use ReflectionClass;
 
@@ -24,9 +21,9 @@ final class DoctrineListFactory
      * @template T of EntityInterface
      * @param ReflectionClass<T> $entityClass
      * @param ReflectionClass<GeneratedDoctrineEntityInterface> $doctrineEntityClass
-     * @return LazyLoadedList<T>
+     * @return EntityListInterface<T>
      */
-    public function createFor(ReflectionClass $entityClass, ReflectionClass $doctrineEntityClass, BoundedContextId $boundedContextId): LazyLoadedList
+    public function createFor(ReflectionClass $entityClass, ReflectionClass $doctrineEntityClass, BoundedContextId $boundedContextId): EntityListInterface
     {
         $filters = $this->entityQueryFilterFactory->createFilterList($doctrineEntityClass, $boundedContextId);
         $entityQueryFactory = new EntityQueryFactory(
@@ -35,11 +32,12 @@ final class DoctrineListFactory
             $boundedContextId,
             ...$filters
         );
-        return new LazyLoadedList(
-            LazyLoadedListIdentifier::createFrom($boundedContextId, $entityClass),
-            new GetDoctrineItem($this->ormBuilder, $entityQueryFactory),
-            new TakeDoctrineItem($this->ormBuilder, $entityQueryFactory),
-            new CountDoctrineItems($this->ormBuilder, $entityQueryFactory),
+        return new DoctrineEntityList(
+            $this->ormBuilder,
+            $entityQueryFactory,
+            $doctrineEntityClass,
+            $entityClass,
+            $boundedContextId
         );
     }
 }

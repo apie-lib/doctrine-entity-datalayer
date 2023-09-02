@@ -3,7 +3,7 @@ namespace Apie\DoctrineEntityDatalayer;
 
 use Apie\Core\BoundedContext\BoundedContext;
 use Apie\Core\Datalayers\BoundedContextAwareApieDatalayer;
-use Apie\Core\Datalayers\Lists\LazyLoadedList;
+use Apie\Core\Datalayers\Lists\EntityListInterface;
 use Apie\Core\Entities\EntityInterface;
 use Apie\Core\Identifiers\IdentifierInterface;
 use Apie\DoctrineEntityConverter\Interfaces\GeneratedDoctrineEntityInterface;
@@ -33,7 +33,7 @@ class DoctrineEntityDatalayer implements BoundedContextAwareApieDatalayer
         return $this->entityManager;
     }
 
-    public function all(ReflectionClass $class, ?BoundedContext $boundedContext = null): LazyLoadedList
+    public function all(ReflectionClass $class, ?BoundedContext $boundedContext = null): EntityListInterface
     {
         return $this->doctrineListFactory->createFor(
             $class,

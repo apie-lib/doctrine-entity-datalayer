@@ -55,7 +55,7 @@ final class EntityQueryFactory
      */
     private function getOriginalClass(): ReflectionClass
     {
-        return $this->doctrineEntityClass->getMethod('getOriginalClassName')->invoke(null);
+        return new ReflectionClass($this->doctrineEntityClass->getMethod('getOriginalClassName')->invoke(null));
     }
 
     private function doCreateQuery(QuerySearch $querySearch): EntityQuery
