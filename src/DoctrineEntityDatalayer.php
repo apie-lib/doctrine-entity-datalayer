@@ -2,10 +2,13 @@
 namespace Apie\DoctrineEntityDatalayer;
 
 use Apie\Core\BoundedContext\BoundedContext;
+use Apie\Core\BoundedContext\BoundedContextId;
+use Apie\Core\Datalayers\ApieDatalayerWithFilters;
 use Apie\Core\Datalayers\BoundedContextAwareApieDatalayer;
 use Apie\Core\Datalayers\Lists\EntityListInterface;
 use Apie\Core\Entities\EntityInterface;
 use Apie\Core\Identifiers\IdentifierInterface;
+use Apie\Core\Lists\StringList;
 use Apie\DoctrineEntityConverter\Interfaces\GeneratedDoctrineEntityInterface;
 use Apie\DoctrineEntityDatalayer\Exceptions\InsertConflict;
 use Apie\DoctrineEntityDatalayer\Factories\DoctrineListFactory;
@@ -13,7 +16,7 @@ use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use ReflectionClass;
 
-class DoctrineEntityDatalayer implements BoundedContextAwareApieDatalayer
+class DoctrineEntityDatalayer implements ApieDatalayerWithFilters, BoundedContextAwareApieDatalayer
 {
     private ?EntityManagerInterface $entityManager = null;
 
@@ -31,6 +34,12 @@ class DoctrineEntityDatalayer implements BoundedContextAwareApieDatalayer
         }
 
         return $this->entityManager;
+    }
+
+    public function getFilterColumns(ReflectionClass $class, BoundedContextId $boundedContextId): StringList
+    {
+        $doctrineEntityClass = $this->ormBuilder->toDoctrineClass($class);
+        return new StringList(array_keys($doctrineEntityClass->getMethod('getMapping')->invoke(null)));
     }
 
     public function all(ReflectionClass $class, ?BoundedContext $boundedContext = null): EntityListInterface
