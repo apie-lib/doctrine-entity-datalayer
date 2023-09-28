@@ -53,7 +53,7 @@ class DoctrineEntityDatalayerServiceProvider extends ServiceProvider
         \Apie\ServiceProviderGenerator\TagMap::register(
             $this->app,
             \Apie\DoctrineEntityDatalayer\DoctrineEntityDatalayer::class,
-            array(
+            array (
               0 => 'apie.datalayer',
             )
         );
