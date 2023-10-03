@@ -7,6 +7,7 @@ use Apie\Core\Datalayers\ApieDatalayerWithFilters;
 use Apie\Core\Datalayers\BoundedContextAwareApieDatalayer;
 use Apie\Core\Datalayers\Lists\EntityListInterface;
 use Apie\Core\Entities\EntityInterface;
+use Apie\Core\Exceptions\EntityNotFoundException;
 use Apie\Core\Identifiers\IdentifierInterface;
 use Apie\Core\Lists\StringList;
 use Apie\DoctrineEntityConverter\Interfaces\GeneratedDoctrineEntityInterface;
@@ -58,6 +59,9 @@ class DoctrineEntityDatalayer implements ApieDatalayerWithFilters, BoundedContex
         $doctrineEntityClass = $this->ormBuilder->toDoctrineClass($domainClass, $boundedContext)->name;
         /** @var GeneratedDoctrineEntityInterface $doctrineEntity */
         $doctrineEntity = $entityManager->find($doctrineEntityClass, $identifier->toNative());
+        if (!$doctrineEntity) {
+            throw new EntityNotFoundException($identifier);
+        }
         $domainObject = $domainClass->newInstanceWithoutConstructor();
         $doctrineEntity->inject($domainObject);
         return $domainObject;
@@ -89,6 +93,9 @@ class DoctrineEntityDatalayer implements ApieDatalayerWithFilters, BoundedContex
         $doctrineEntityClass = $this->ormBuilder->toDoctrineClass($domainClass, $boundedContext)->name;
         /** @var GeneratedDoctrineEntityInterface $doctrineEntity */
         $doctrineEntity = $entityManager->find($doctrineEntityClass, $identifier->toNative());
+        if (!$doctrineEntity) {
+            throw new EntityNotFoundException($identifier);
+        }
         $doctrineEntity->updateFrom($entity);
         $entityManager->persist($doctrineEntity);
         $entityManager->flush();
