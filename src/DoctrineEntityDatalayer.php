@@ -57,7 +57,7 @@ class DoctrineEntityDatalayer implements ApieDatalayerWithFilters, BoundedContex
         $entityManager = $this->getEntityManager();
         $domainClass = $identifier->getReferenceFor();
         $doctrineEntityClass = $this->ormBuilder->toDoctrineClass($domainClass, $boundedContext)->name;
-        /** @var GeneratedDoctrineEntityInterface $doctrineEntity */
+        /** @var GeneratedDoctrineEntityInterface|null $doctrineEntity */
         $doctrineEntity = $entityManager->find($doctrineEntityClass, $identifier->toNative());
         if (!$doctrineEntity) {
             throw new EntityNotFoundException($identifier);
@@ -91,7 +91,7 @@ class DoctrineEntityDatalayer implements ApieDatalayerWithFilters, BoundedContex
         $identifier = $entity->getId();
         $domainClass = $identifier->getReferenceFor();
         $doctrineEntityClass = $this->ormBuilder->toDoctrineClass($domainClass, $boundedContext)->name;
-        /** @var GeneratedDoctrineEntityInterface $doctrineEntity */
+        /** @var GeneratedDoctrineEntityInterface|null $doctrineEntity */
         $doctrineEntity = $entityManager->find($doctrineEntityClass, $identifier->toNative());
         if (!$doctrineEntity) {
             throw new EntityNotFoundException($identifier);
