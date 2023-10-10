@@ -103,6 +103,20 @@ class DoctrineEntityDatalayer implements ApieDatalayerWithFilters, BoundedContex
         $doctrineEntity->inject($entity);
         $this->entityReindexer->updateIndex($doctrineEntity, $entity);
         return $entity;
+    }
 
+    public function removeExisting(EntityInterface $entity, ?BoundedContext $boundedContext = null): void
+    {
+        $entityManager = $this->getEntityManager();
+        $identifier = $entity->getId();
+        $domainClass = $identifier->getReferenceFor();
+        $doctrineEntityClass = $this->ormBuilder->toDoctrineClass($domainClass, $boundedContext)->name;
+        /** @var GeneratedDoctrineEntityInterface|null $doctrineEntity */
+        $doctrineEntity = $entityManager->find($doctrineEntityClass, $identifier->toNative());
+        if (!$doctrineEntity) {
+            throw new EntityNotFoundException($identifier);
+        }
+        $entityManager->remove($doctrineEntity);
+        $entityManager->flush();
     }
 }
