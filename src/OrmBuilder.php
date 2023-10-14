@@ -119,7 +119,10 @@ class OrmBuilder
     public function createEntityManager(): EntityManagerInterface
     {
         if (!$this->buildOnce || $this->isEmptyPath()) {
-            $this->ormBuilder->createOrm($this->path);
+            $modified = $this->ormBuilder->createOrm($this->path);
+            if ($modified) {
+                $this->cache->clear();
+            }
             $this->buildOnce = true;
         }
         $config = ORMSetup::createAttributeMetadataConfiguration(
