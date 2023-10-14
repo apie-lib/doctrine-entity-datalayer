@@ -120,7 +120,7 @@ class OrmBuilder
     {
         if (!$this->buildOnce || $this->isEmptyPath()) {
             $modified = $this->ormBuilder->createOrm($this->path);
-            if ($modified) {
+            if ($modified && $this->cache) {
                 $this->cache->clear();
             }
             $this->buildOnce = true;
@@ -129,7 +129,8 @@ class OrmBuilder
             [$this->path],
             $this->devMode,
             $this->proxyDir,
-            $this->cache
+            $this->cache,
+            // reportFieldsWhereDeclared: true
         );
         if ($this->debugMiddleware) {
             $config->setMiddlewares([
