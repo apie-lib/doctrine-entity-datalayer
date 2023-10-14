@@ -119,17 +119,14 @@ class OrmBuilder
     public function createEntityManager(): EntityManagerInterface
     {
         if (!$this->buildOnce || $this->isEmptyPath()) {
-            $modified = $this->ormBuilder->createOrm($this->path);
-            if ($modified && $this->cache) {
-                $this->cache->clear();
-            }
+            $this->ormBuilder->createOrm($this->path);
             $this->buildOnce = true;
         }
         $config = ORMSetup::createAttributeMetadataConfiguration(
             [$this->path],
             $this->devMode,
             $this->proxyDir,
-            $this->cache,
+            $this->devMode ? null : $this->cache,
             // reportFieldsWhereDeclared: true
         );
         if ($this->debugMiddleware) {
