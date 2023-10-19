@@ -26,9 +26,6 @@ final class FulltextSearchFilter implements TextSearchFilterInterface, AddsJoinF
         $textSearch = $querySearch->getTextSearch();
         assert(null !== $textSearch);
         $words = array_keys(WordCounter::countFromString($textSearch));
-        if (empty($words)) {
-            return '';
-        }
         $whereStatement = array_map(
             function (string $word) use ($connection) {
                 return 'text LIKE ' . $connection->quote(LikeUtils::toLikeString($word));
@@ -44,7 +41,7 @@ final class FulltextSearchFilter implements TextSearchFilterInterface, AddsJoinF
             ) subquery ON entity.id = subquery.entity_id',
             $this->boundedContextId,
             IdentifierUtils::classNameToUnderscore($this->entityClass),
-            implode(' OR ', $whereStatement)
+            empty($words) ? '1' : implode(' OR ', $whereStatement)
         );
     }
 
