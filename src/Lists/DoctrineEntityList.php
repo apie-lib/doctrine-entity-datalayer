@@ -56,6 +56,7 @@ final class DoctrineEntityList implements EntityListInterface
             $this->entityQueryFactory->getDoctrineClass()->name,
             'entity'
         );
+        
         if ($noPagination) {
             return $entityManager->createNativeQuery($entityQuery->getWithoutPagination(), $resultSetMapping);
         }

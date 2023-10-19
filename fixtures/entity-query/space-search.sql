@@ -3,7 +3,7 @@ SELECT DISTINCT entity.*
 JOIN (
                 SELECT entity_id, SUM(idf * tf) AS accuracy
                 FROM apie_index_test_order
-                WHERE text LIKE "%\\%%"
+                WHERE 1
                 GROUP BY entity_id
             ) subquery ON entity.id = subquery.entity_id
 WHERE (1)
