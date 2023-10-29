@@ -62,7 +62,9 @@ class DoctrineEntityDatalayer implements ApieDatalayerWithFilters, BoundedContex
         if (!$doctrineEntity) {
             throw new EntityNotFoundException($identifier);
         }
-        $domainObject = $domainClass->newInstanceWithoutConstructor();
+        $domainObject = is_callable([$doctrineEntity, 'newDomainClassInstance'])
+            ? $doctrineEntity->newDomainClassInstance()
+            : $domainClass->newInstanceWithoutConstructor();
         $doctrineEntity->inject($domainObject);
         return $domainObject;
     }
