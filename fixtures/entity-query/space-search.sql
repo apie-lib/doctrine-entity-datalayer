@@ -1,8 +1,8 @@
 SELECT DISTINCT entity.*
-            FROM apie_entity_test_order entity
-JOIN (
-                SELECT entity_id, SUM(idf * tf) AS accuracy
-                FROM apie_index_test_order
+            FROM apie_resource__test_order entity
+LEFT JOIN (
+                SELECT ref_apie_resource__test_order_id AS entity_id, SUM(idf * tf) AS accuracy
+                FROM apie_index_table
                 WHERE 1
                 GROUP BY entity_id
             ) subquery ON entity.id = subquery.entity_id

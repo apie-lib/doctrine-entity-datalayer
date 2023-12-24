@@ -10,12 +10,17 @@ use Apie\Core\Entities\EntityInterface;
 use Apie\Core\Exceptions\EntityNotFoundException;
 use Apie\Core\Identifiers\IdentifierInterface;
 use Apie\Core\Lists\StringList;
-use Apie\DoctrineEntityConverter\Interfaces\GeneratedDoctrineEntityInterface;
 use Apie\DoctrineEntityDatalayer\Exceptions\InsertConflict;
 use Apie\DoctrineEntityDatalayer\Factories\DoctrineListFactory;
+use Apie\StorageMetadata\Attributes\GetSearchIndexAttribute;
+use Apie\StorageMetadata\DomainToStorageConverter;
+use Apie\StorageMetadata\Interfaces\StorageDtoInterface;
+use Apie\StorageMetadataBuilder\Interfaces\HasIndexInterface;
+use Apie\StorageMetadataBuilder\Interfaces\RootObjectInterface;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use ReflectionClass;
+use ReflectionProperty;
 
 class DoctrineEntityDatalayer implements ApieDatalayerWithFilters, BoundedContextAwareApieDatalayer
 {
@@ -23,6 +28,7 @@ class DoctrineEntityDatalayer implements ApieDatalayerWithFilters, BoundedContex
 
     public function __construct(
         private readonly OrmBuilder $ormBuilder,
+        private readonly DomainToStorageConverter $domainToStorageConverter,
         private readonly EntityReindexer $entityReindexer,
         private readonly DoctrineListFactory $doctrineListFactory
     ) {
@@ -40,7 +46,15 @@ class DoctrineEntityDatalayer implements ApieDatalayerWithFilters, BoundedContex
     public function getFilterColumns(ReflectionClass $class, BoundedContextId $boundedContextId): StringList
     {
         $doctrineEntityClass = $this->ormBuilder->toDoctrineClass($class);
-        return new StringList(array_keys($doctrineEntityClass->getMethod('getMapping')->invoke(null)));
+        $list = [];
+        foreach ($doctrineEntityClass->getProperties(ReflectionProperty::IS_PUBLIC) as $publicProperty) {
+            if (str_starts_with($publicProperty->name, 'search_')) {
+                foreach ($publicProperty->getAttributes(GetSearchIndexAttribute::class) as $publicPropertyAttribute) {
+                    $list[] = substr($publicProperty->name, strlen('search_'));
+                }
+            }
+        }
+        return new StringList($list);
     }
 
     public function all(ReflectionClass $class, ?BoundedContext $boundedContext = null): EntityListInterface
@@ -57,33 +71,41 @@ class DoctrineEntityDatalayer implements ApieDatalayerWithFilters, BoundedContex
         $entityManager = $this->getEntityManager();
         $domainClass = $identifier->getReferenceFor();
         $doctrineEntityClass = $this->ormBuilder->toDoctrineClass($domainClass, $boundedContext)->name;
-        /** @var GeneratedDoctrineEntityInterface|null $doctrineEntity */
+        /** @var (RootObjectInterface&StorageDtoInterface)|null $doctrineEntity */
         $doctrineEntity = $entityManager->find($doctrineEntityClass, $identifier->toNative());
         if (!$doctrineEntity) {
             throw new EntityNotFoundException($identifier);
         }
-        $domainObject = is_callable([$doctrineEntity, 'newDomainClassInstance'])
-            ? $doctrineEntity->newDomainClassInstance()
-            : $domainClass->newInstanceWithoutConstructor();
-        $doctrineEntity->inject($domainObject);
-        return $domainObject;
+        assert($doctrineEntity instanceof RootObjectInterface);
+        assert($doctrineEntity instanceof StorageDtoInterface);
+        return $this->domainToStorageConverter->createDomainObject($doctrineEntity);
     }
     public function persistNew(EntityInterface $entity, ?BoundedContext $boundedContext = null): EntityInterface
     {
         $entityManager = $this->getEntityManager();
         $identifier = $entity->getId();
         $domainClass = $identifier->getReferenceFor();
+        /** @var class-string<StorageDtoInterface> $doctrineEntityClass */
         $doctrineEntityClass = $this->ormBuilder->toDoctrineClass($domainClass, $boundedContext)->name;
-        $doctrineEntity = $doctrineEntityClass::createFrom($entity);
+        $doctrineEntity = $this->domainToStorageConverter->createStorageObject(
+            $entity,
+            new ReflectionClass($doctrineEntityClass)
+        );
         $entityManager->persist($doctrineEntity);
         try {
             $entityManager->flush();
         } catch (UniqueConstraintViolationException $uniqueConstraintViolation) {
             throw new InsertConflict($uniqueConstraintViolation);
         }
-
-        $doctrineEntity->inject($entity);
-        $this->entityReindexer->updateIndex($doctrineEntity, $entity);
+        // TODO: only do for entities with Auto-increment id's
+        $this->domainToStorageConverter->injectExistingDomainObject(
+            $entity,
+            $doctrineEntity
+        );
+        if ($doctrineEntity instanceof HasIndexInterface) {
+            $this->entityReindexer->updateIndex($doctrineEntity, $entity);
+        }
+        
         return $entity;
     }
     
@@ -93,17 +115,21 @@ class DoctrineEntityDatalayer implements ApieDatalayerWithFilters, BoundedContex
         $identifier = $entity->getId();
         $domainClass = $identifier->getReferenceFor();
         $doctrineEntityClass = $this->ormBuilder->toDoctrineClass($domainClass, $boundedContext)->name;
-        /** @var GeneratedDoctrineEntityInterface|null $doctrineEntity */
+        /** @var (StorageDtoInterface&RootObjectInterface)|null $doctrineEntity */
         $doctrineEntity = $entityManager->find($doctrineEntityClass, $identifier->toNative());
         if (!$doctrineEntity) {
             throw new EntityNotFoundException($identifier);
         }
-        $doctrineEntity->updateFrom($entity);
+        $this->domainToStorageConverter->injectExistingStorageObject(
+            $entity,
+            $doctrineEntity
+        );
         $entityManager->persist($doctrineEntity);
         $entityManager->flush();
 
-        $doctrineEntity->inject($entity);
-        $this->entityReindexer->updateIndex($doctrineEntity, $entity);
+        if ($doctrineEntity instanceof HasIndexInterface) {
+            $this->entityReindexer->updateIndex($doctrineEntity, $entity);
+        }
         return $entity;
     }
 
@@ -113,7 +139,7 @@ class DoctrineEntityDatalayer implements ApieDatalayerWithFilters, BoundedContex
         $identifier = $entity->getId();
         $domainClass = $identifier->getReferenceFor();
         $doctrineEntityClass = $this->ormBuilder->toDoctrineClass($domainClass, $boundedContext)->name;
-        /** @var GeneratedDoctrineEntityInterface|null $doctrineEntity */
+        /** @var (StorageDtoInterface&RootObjectInterface)|null $doctrineEntity */
         $doctrineEntity = $entityManager->find($doctrineEntityClass, $identifier->toNative());
         if (!$doctrineEntity) {
             throw new EntityNotFoundException($identifier);

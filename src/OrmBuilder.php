@@ -3,11 +3,10 @@ namespace Apie\DoctrineEntityDatalayer;
 
 use Apie\Core\BoundedContext\BoundedContext;
 use Apie\Core\Entities\EntityInterface;
-use Apie\Core\Persistence\Lists\PersistenceFieldList;
-use Apie\Core\Persistence\Metadata\EntityMetadata;
-use Apie\DoctrineEntityConverter\Interfaces\GeneratedDoctrineEntityInterface;
 use Apie\DoctrineEntityConverter\OrmBuilder as DoctrineEntityConverterOrmBuilder;
 use Apie\DoctrineEntityDatalayer\Exceptions\CouldNotUpdateDatabaseAutomatically;
+use Apie\StorageMetadata\Interfaces\StorageDtoInterface;
+use Apie\StorageMetadataBuilder\Interfaces\RootObjectInterface;
 use Doctrine\Bundle\DoctrineBundle\Middleware\DebugMiddleware;
 use Doctrine\Common\EventManager;
 use Doctrine\DBAL\DriverManager;
@@ -44,7 +43,7 @@ class OrmBuilder
 
     public function getGeneratedNamespace(): string
     {
-        return 'Generated\\';
+        return 'Generated\\ApieEntities\\';
     }
 
     protected function runMigrations(EntityManagerInterface $entityManager, bool $firstCall = true): void
@@ -72,25 +71,16 @@ class OrmBuilder
 
     /**
      * @param ReflectionClass<EntityInterface> $class
-     * @return ReflectionClass<GeneratedDoctrineEntityInterface>
+     * @return ReflectionClass<StorageDtoInterface>
      */
     public function toDoctrineClass(ReflectionClass $class, ?BoundedContext $boundedContext = null): ReflectionClass
     {
         $manager = $this->createEntityManager();
-        if ($boundedContext) {
-            $metadata = new EntityMetadata(
-                $boundedContext->getId(),
-                $class->name,
-                new PersistenceFieldList()
-            );
-            $manager->getMetadataFactory()->getAllMetadata();
-            return new ReflectionClass($this->getGeneratedNamespace() . $metadata->getName());
-        }
         foreach ($manager->getMetadataFactory()->getAllMetadata() as $metadata) {
             $refl = new ReflectionClass($metadata->getName());
-            if ($refl->hasMethod('getOriginalClassName')) {
-                $originalClass = $refl->getMethod('getOriginalClassName')->invoke(null);
-                if ($originalClass === $class->name) {
+            if (in_array(RootObjectInterface::class, $refl->getInterfaceNames())) {
+                $originalClass = $refl->getMethod('getClassReference')->invoke(null);
+                if ($originalClass->name === $class->name) {
                     return $refl;
                 }
             }

@@ -4,14 +4,9 @@ namespace Apie\DoctrineEntityDatalayer;
 use Apie\Core\Context\ApieContext;
 use Apie\Core\Entities\EntityInterface;
 use Apie\Core\Indexing\Indexer;
-use Apie\DoctrineEntityConverter\Interfaces\GeneratedDoctrineEntityInterface;
-use Apie\DoctrineEntityConverter\PropertyGenerators\ManyToEntityReferencePropertyGenerator;
-use Doctrine\Common\Collections\ArrayCollection;
+use Apie\StorageMetadataBuilder\Interfaces\HasIndexInterface;
 use Doctrine\DBAL\Platforms\SqlitePlatform;
-use Doctrine\ORM\Mapping\OneToMany;
-use LogicException;
 use ReflectionClass;
-use ReflectionProperty;
 
 final class EntityReindexer
 {
@@ -20,35 +15,12 @@ final class EntityReindexer
     }
 
     /**
-     * Creates an index class as used by the Doctrine entity. It makes assumptions about the generated Doctrine
-     * entity.
-     *
-     * @see ManyToEntityReferencePropertyGenerator
+     * @return class-string<HasIndexInterface>
      */
-    private function createIndexClass(GeneratedDoctrineEntityInterface $doctrineEntity, string $text, float $priority): GeneratedDoctrineEntityInterface
-    {
-        $className = $this->getIndexClass($doctrineEntity);
-        $res = new $className;
-        $res->text = $text;
-        $res->priority = $priority;
-        $res->entity = $doctrineEntity;
-        return $res;
-    }
-
-    /**
-     * @return class-string<GeneratedDoctrineEntityInterface>
-     */
-    private function getIndexClass(GeneratedDoctrineEntityInterface $doctrineEntity): string
+    private function getIndexClass(HasIndexInterface $doctrineEntity): string
     {
         $refl = new ReflectionClass($doctrineEntity);
-
-        $property = new ReflectionProperty($doctrineEntity, '_indexTable');
-        $attributes = $property->getAttributes(OneToMany::class);
-        foreach ($attributes as $attribute) {
-            $className = $refl->getNamespaceName() . '\\' . $attribute->newInstance()->targetEntity;
-            return $className;
-        }
-        throw new LogicException('The _indexTable property should have a OneToMany attribute');
+        return $refl->getMethod('getIndexTable')->invoke($doctrineEntity)->name;
     }
 
     /**
@@ -59,36 +31,16 @@ final class EntityReindexer
      * @see https://en.wikipedia.org/wiki/Tf%E2%80%93idf
      */
     public function updateIndex(
-        GeneratedDoctrineEntityInterface $doctrineEntity,
+        HasIndexInterface $doctrineEntity,
         EntityInterface $entity
     ): void {
         $entityManager = $this->ormBuilder->createEntityManager();
-        $currentIndex = $doctrineEntity->_indexTable ?? new ArrayCollection([]);
         $newIndexes = $this->indexer->getIndexesForObject(
             $entity,
             new ApieContext()
         );
+        $doctrineEntity->replaceIndexes($newIndexes);
         $termsToUpdate = array_keys($newIndexes);
-        $offset = 0;
-        $tf = 1.0 / array_sum($newIndexes);
-        foreach ($newIndexes as $text => $priority) {
-            if (isset($currentIndex[$offset])) {
-                $termsToUpdate[] = $currentIndex[$offset]->text;
-                $currentIndex[$offset]->text = $text;
-                $currentIndex[$offset]->priority = $priority;
-            } else {
-                $currentIndex[$offset] = $this->createIndexClass($doctrineEntity, $text, $priority);
-                $entityManager->persist($currentIndex[$offset]);
-            }
-            $currentIndex[$offset]->tf = $tf * $priority;
-            $offset++;
-        }
-        $count = count($currentIndex);
-        for (;$offset < $count; $offset++) {
-            $termsToUpdate[] = $currentIndex[$offset]->text;
-            $entityManager->remove($currentIndex[$offset]);
-        }
-        $doctrineEntity->_indexTable = $currentIndex;
         $entityManager->flush();
         $this->recalculateIdf($doctrineEntity, $termsToUpdate);
     }
@@ -96,30 +48,34 @@ final class EntityReindexer
     /**
      * @param array<int, string> $termsToUpdate
      */
-    private function recalculateIdf(GeneratedDoctrineEntityInterface $doctrineEntity, array $termsToUpdate): void
+    private function recalculateIdf(HasIndexInterface $doctrineEntity, array $termsToUpdate): void
     {
         if (empty($termsToUpdate)) {
             return;
         }
         $entityManager = $this->ormBuilder->createEntityManager();
         $tableName = (new ReflectionClass($this->getIndexClass($doctrineEntity)))->getShortName();
+        $columnName = 'ref_' . (new ReflectionClass($doctrineEntity))->getShortName() . '_id';
         $totalDocumentQuery = sprintf(
-            'SELECT total_documents FROM (SELECT COUNT(DISTINCT entity_id) AS total_documents FROM %s)',
+            'SELECT total_documents FROM (SELECT COUNT(DISTINCT %s) AS total_documents FROM %s)',
+            $columnName,
             $tableName
         );
         $documentWithTermQuery = sprintf(
-            'SELECT documents_with_term FROM (SELECT text, COUNT(DISTINCT entity_id) AS documents_with_term FROM %s GROUP BY text) AS sub WHERE sub.text',
+            'SELECT documents_with_term FROM (SELECT text, COUNT(DISTINCT %s) AS documents_with_term FROM %s GROUP BY text) AS sub WHERE sub.text',
+            $columnName,
             $tableName
         );
         $connection = $entityManager->getConnection();
         $query = sprintf(
             'UPDATE %s AS t
             SET idf = %s((%s)/(%s = t.text))
-            WHERE EXISTS (SELECT 1 FROM (SELECT text, COUNT(DISTINCT entity_id) AS documents_with_term FROM %s GROUP BY text) AS sub WHERE sub.text = t.text);',
+            WHERE EXISTS (SELECT 1 FROM (SELECT text, COUNT(DISTINCT %s) AS documents_with_term FROM %s GROUP BY text) AS sub WHERE sub.text = t.text);',
             $tableName,
             $connection->getDatabasePlatform() instanceof SqlitePlatform ? '' : 'log',
             $totalDocumentQuery,
             $documentWithTermQuery,
+            $columnName,
             $tableName
         );
         $connection->executeQuery($query);

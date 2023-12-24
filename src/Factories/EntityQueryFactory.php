@@ -4,7 +4,6 @@ namespace Apie\DoctrineEntityDatalayer\Factories;
 use Apie\Core\BoundedContext\BoundedContextId;
 use Apie\Core\Datalayers\Search\QuerySearch;
 use Apie\Core\Entities\EntityInterface;
-use Apie\DoctrineEntityConverter\Interfaces\GeneratedDoctrineEntityInterface;
 use Apie\DoctrineEntityDatalayer\Query\EntityQuery;
 use Apie\DoctrineEntityDatalayer\Query\EntityQueryFilterInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -22,7 +21,7 @@ final class EntityQueryFactory
      */
     private array $filters;
     /**
-     * @param ReflectionClass<GeneratedDoctrineEntityInterface> $doctrineEntityClass
+     * @param ReflectionClass<object> $doctrineEntityClass
      */
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
@@ -43,7 +42,7 @@ final class EntityQueryFactory
     }
 
     /**
-     * @return ReflectionClass<GeneratedDoctrineEntityInterface>
+     * @return ReflectionClass<object>
      */
     public function getDoctrineClass(): ReflectionClass
     {
@@ -55,7 +54,7 @@ final class EntityQueryFactory
      */
     private function getOriginalClass(): ReflectionClass
     {
-        return new ReflectionClass($this->doctrineEntityClass->getMethod('getOriginalClassName')->invoke(null));
+        return $this->doctrineEntityClass->getMethod('getClassReference')->invoke(null);
     }
 
     private function doCreateQuery(QuerySearch $querySearch): EntityQuery

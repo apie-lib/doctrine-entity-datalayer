@@ -9,11 +9,10 @@ use Apie\Core\Datalayers\Search\QuerySearch;
 use Apie\Core\Datalayers\ValueObjects\LazyLoadedListIdentifier;
 use Apie\Core\Entities\EntityInterface;
 use Apie\Core\Lists\ItemList;
-use Apie\Core\Utils\ConverterUtils;
-use Apie\DoctrineEntityConverter\Interfaces\GeneratedDoctrineEntityInterface;
 use Apie\DoctrineEntityDatalayer\Factories\EntityQueryFactory;
 use Apie\DoctrineEntityDatalayer\OrmBuilder;
-use Apie\TypeConverter\ReflectionTypeFactory;
+use Apie\StorageMetadata\DomainToStorageConverter;
+use Apie\StorageMetadata\Interfaces\StorageDtoInterface;
 use Doctrine\ORM\AbstractQuery;
 use Doctrine\ORM\NativeQuery;
 use Doctrine\ORM\Query\ResultSetMapping;
@@ -32,6 +31,7 @@ final class DoctrineEntityList implements EntityListInterface
      */
     public function __construct(
         private readonly OrmBuilder $ormBuilder,
+        private readonly DomainToStorageConverter $domainToStorageConverter,
         private readonly EntityQueryFactory $entityQueryFactory,
         private readonly ReflectionClass $entityClass,
         private readonly BoundedContextId $boundedContextId
@@ -41,9 +41,9 @@ final class DoctrineEntityList implements EntityListInterface
     public function getIterator(): Iterator
     {
         $query = $this->createNativeQuery(new QuerySearch(0), noPagination: true);
-        /** @var GeneratedDoctrineEntityInterface $rowResult */
+        /** @var StorageDtoInterface $rowResult */
         foreach ($query->toIterable() as $rowResult) {
-            yield ConverterUtils::dynamicCast($rowResult, ReflectionTypeFactory::createReflectionType($this->entityClass->name));
+            yield $this->domainToStorageConverter->createDomainObject($rowResult);
         }
     }
 
@@ -71,7 +71,7 @@ final class DoctrineEntityList implements EntityListInterface
         $query = $this->createNativeQuery($search, noPagination: false);
         $list = [];
         foreach ($query->toIterable() as $rowResult) {
-            $list[] = ConverterUtils::dynamicCast($rowResult, ReflectionTypeFactory::createReflectionType($this->entityClass->name));
+            $list[] = $this->domainToStorageConverter->createDomainObject($rowResult);
         }
         return new PaginatedResult(
             LazyLoadedListIdentifier::createFrom($this->boundedContextId, $this->entityClass),

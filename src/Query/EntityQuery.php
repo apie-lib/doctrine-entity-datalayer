@@ -51,7 +51,7 @@ final class EntityQuery implements Stringable
     {
         return sprintf(
             "SELECT DISTINCT entity.*
-            FROM apie_entity_%s_%s entity%s
+            FROM apie_resource__%s_%s entity%s
 %s
 ORDER BY %s",
             $this->boundedContextId,

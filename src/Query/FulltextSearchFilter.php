@@ -32,13 +32,15 @@ final class FulltextSearchFilter implements TextSearchFilterInterface, AddsJoinF
             },
             $words
         );
+
         return sprintf(
-            'JOIN (
-                SELECT entity_id, SUM(idf * tf) AS accuracy
-                FROM apie_index_%s_%s
+            '%sJOIN (
+                SELECT ref_apie_resource__%s_%s_id AS entity_id, SUM(idf * tf) AS accuracy
+                FROM apie_index_table
                 WHERE %s
                 GROUP BY entity_id
             ) subquery ON entity.id = subquery.entity_id',
+            empty($words) ? 'LEFT ' : '',
             $this->boundedContextId,
             IdentifierUtils::classNameToUnderscore($this->entityClass),
             empty($words) ? '1' : implode(' OR ', $whereStatement)

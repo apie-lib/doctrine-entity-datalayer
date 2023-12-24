@@ -28,7 +28,8 @@ class DoctrineEntityDatalayerServiceProvider extends ServiceProvider
             function ($app) {
                 return new \Apie\DoctrineEntityDatalayer\Factories\DoctrineListFactory(
                     $app->make(\Apie\DoctrineEntityDatalayer\OrmBuilder::class),
-                    $app->make(\Apie\DoctrineEntityDatalayer\Factories\EntityQueryFilterFactory::class)
+                    $app->make(\Apie\DoctrineEntityDatalayer\Factories\EntityQueryFilterFactory::class),
+                    $app->make(\Apie\StorageMetadata\DomainToStorageConverter::class)
                 );
             }
         );
@@ -41,10 +42,20 @@ class DoctrineEntityDatalayerServiceProvider extends ServiceProvider
             }
         );
         $this->app->singleton(
+            \Apie\StorageMetadata\DomainToStorageConverter::class,
+            function ($app) {
+                return \Apie\StorageMetadata\DomainToStorageConverter::create(
+                    $app->make(\Apie\Core\Indexing\Indexer::class)
+                );
+                
+            }
+        );
+        $this->app->singleton(
             \Apie\DoctrineEntityDatalayer\DoctrineEntityDatalayer::class,
             function ($app) {
                 return new \Apie\DoctrineEntityDatalayer\DoctrineEntityDatalayer(
                     $app->make(\Apie\DoctrineEntityDatalayer\OrmBuilder::class),
+                    $app->make(\Apie\StorageMetadata\DomainToStorageConverter::class),
                     $app->make(\Apie\DoctrineEntityDatalayer\EntityReindexer::class),
                     $app->make(\Apie\DoctrineEntityDatalayer\Factories\DoctrineListFactory::class)
                 );

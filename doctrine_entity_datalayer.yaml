@@ -8,12 +8,20 @@ services:
     arguments:
       - '@Apie\DoctrineEntityDatalayer\OrmBuilder'
       - '@Apie\DoctrineEntityDatalayer\Factories\EntityQueryFilterFactory'
+      - '@Apie\StorageMetadata\DomainToStorageConverter'
 
   Apie\DoctrineEntityDatalayer\Factories\EntityQueryFilterFactory:
+
+# TODO move to own yaml file.
+  Apie\StorageMetadata\DomainToStorageConverter:
+    factory: ['Apie\StorageMetadata\DomainToStorageConverter', 'create']
+    arguments:
+      - '@Apie\Core\Indexing\Indexer'
 
   Apie\DoctrineEntityDatalayer\DoctrineEntityDatalayer:
     arguments:
       - '@Apie\DoctrineEntityDatalayer\OrmBuilder'
+      - '@Apie\StorageMetadata\DomainToStorageConverter'
       - '@Apie\DoctrineEntityDatalayer\EntityReindexer'
       - '@Apie\DoctrineEntityDatalayer\Factories\DoctrineListFactory'
     tags:

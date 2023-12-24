@@ -2,9 +2,7 @@
 namespace Apie\Tests\DoctrineEntityDatalayer;
 
 use Apie\Core\Indexing\Indexer;
-use Apie\Core\Persistence\PersistenceLayerFactory;
-use Apie\Core\Persistence\PersistenceMetadataFactory;
-use Apie\DoctrineEntityConverter\EntityBuilder;
+use Apie\DoctrineEntityConverter\Factories\PersistenceLayerFactory;
 use Apie\DoctrineEntityConverter\OrmBuilder as DoctrineEntityConverterOrmBuilder;
 use Apie\DoctrineEntityDatalayer\DoctrineEntityDatalayer;
 use Apie\DoctrineEntityDatalayer\EntityReindexer;
@@ -14,6 +12,7 @@ use Apie\DoctrineEntityDatalayer\OrmBuilder;
 use Apie\Fixtures\BoundedContextFactory;
 use Apie\Fixtures\Entities\UserWithAddress;
 use Apie\Fixtures\ValueObjects\AddressWithZipcodeCheck;
+use Apie\StorageMetadata\DomainToStorageConverter;
 use PHPUnit\Framework\TestCase;
 
 class DoctrineEntityDatalayerTest extends TestCase
@@ -37,8 +36,7 @@ class DoctrineEntityDatalayerTest extends TestCase
                 $this->markTestSkipped('Can not create proxy folder ' . $proxyPath);
             }
             $ormBuilder = new DoctrineEntityConverterOrmBuilder(
-                EntityBuilder::create('Generated'),
-                new PersistenceLayerFactory(PersistenceMetadataFactory::create()),
+                new PersistenceLayerFactory(),
                 BoundedContextFactory::createHashmap(),
                 true
             );
@@ -56,12 +54,15 @@ class DoctrineEntityDatalayerTest extends TestCase
                 ],
                 eventManager: null
             );
+            $domainToStorageConverter = DomainToStorageConverter::create();
             $doctrineListFactory = new DoctrineListFactory(
                 $ormBuilder,
-                new EntityQueryFilterFactory()
+                new EntityQueryFilterFactory(),
+                $domainToStorageConverter
             );
             $testItem = new DoctrineEntityDatalayer(
                 $ormBuilder,
+                $domainToStorageConverter,
                 new EntityReindexer($ormBuilder, Indexer::create()),
                 $doctrineListFactory
             );
