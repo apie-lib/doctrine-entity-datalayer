@@ -117,8 +117,9 @@ class OrmBuilder
             $this->devMode,
             $this->proxyDir,
             $this->devMode ? null : $this->cache,
-            // reportFieldsWhereDeclared: true
+            reportFieldsWhereDeclared: true
         );
+        $config->setLazyGhostObjectEnabled(true);
         if ($this->debugMiddleware) {
             $config->setMiddlewares([
                 $this->debugMiddleware
