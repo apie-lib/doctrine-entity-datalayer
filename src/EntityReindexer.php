@@ -41,6 +41,7 @@ final class EntityReindexer
         );
         $doctrineEntity->replaceIndexes($newIndexes);
         $termsToUpdate = array_keys($newIndexes);
+        $entityManager->persist($doctrineEntity);
         $entityManager->flush();
         $this->recalculateIdf($doctrineEntity, $termsToUpdate);
     }
