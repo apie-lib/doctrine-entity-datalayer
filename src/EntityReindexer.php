@@ -58,14 +58,16 @@ final class EntityReindexer
         $tableName = (new ReflectionClass($this->getIndexClass($doctrineEntity)))->getShortName();
         $columnName = 'ref_' . (new ReflectionClass($doctrineEntity))->getShortName() . '_id';
         $totalDocumentQuery = sprintf(
-            'SELECT total_documents FROM (SELECT COUNT(DISTINCT %s) AS total_documents FROM %s)',
+            'SELECT total_documents FROM (SELECT COUNT(DISTINCT %s) AS total_documents FROM %s WHERE %s IS NOT NULL)',
             $columnName,
-            $tableName
+            $tableName,
+            $columnName
         );
         $documentWithTermQuery = sprintf(
-            'SELECT documents_with_term FROM (SELECT text, COUNT(DISTINCT %s) AS documents_with_term FROM %s GROUP BY text) AS sub WHERE sub.text',
+            'SELECT documents_with_term FROM (SELECT text, COUNT(DISTINCT %s) AS documents_with_term FROM %s WHERE %s IS NOT NULL GROUP BY text) AS sub WHERE sub.text',
             $columnName,
-            $tableName
+            $tableName,
+            $columnName
         );
         $connection = $entityManager->getConnection();
         $query = sprintf(
