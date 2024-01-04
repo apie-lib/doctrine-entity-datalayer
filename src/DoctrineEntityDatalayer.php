@@ -78,6 +78,7 @@ class DoctrineEntityDatalayer implements ApieDatalayerWithFilters, BoundedContex
         }
         assert($doctrineEntity instanceof RootObjectInterface);
         assert($doctrineEntity instanceof StorageDtoInterface);
+        DoctrineUtils::loadAllProxies($doctrineEntity);
         return $this->domainToStorageConverter->createDomainObject($doctrineEntity);
     }
     public function persistNew(EntityInterface $entity, ?BoundedContext $boundedContext = null): EntityInterface

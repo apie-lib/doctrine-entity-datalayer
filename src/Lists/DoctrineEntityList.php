@@ -9,6 +9,7 @@ use Apie\Core\Datalayers\Search\QuerySearch;
 use Apie\Core\Datalayers\ValueObjects\LazyLoadedListIdentifier;
 use Apie\Core\Entities\EntityInterface;
 use Apie\Core\Lists\ItemList;
+use Apie\DoctrineEntityDatalayer\DoctrineUtils;
 use Apie\DoctrineEntityDatalayer\Factories\EntityQueryFactory;
 use Apie\DoctrineEntityDatalayer\OrmBuilder;
 use Apie\StorageMetadata\DomainToStorageConverter;
@@ -43,6 +44,7 @@ final class DoctrineEntityList implements EntityListInterface
         $query = $this->createNativeQuery(new QuerySearch(0), noPagination: true);
         /** @var StorageDtoInterface $rowResult */
         foreach ($query->toIterable() as $rowResult) {
+            DoctrineUtils::loadAllProxies($rowResult);
             yield $this->domainToStorageConverter->createDomainObject($rowResult);
         }
     }
@@ -71,6 +73,7 @@ final class DoctrineEntityList implements EntityListInterface
         $query = $this->createNativeQuery($search, noPagination: false);
         $list = [];
         foreach ($query->toIterable() as $rowResult) {
+            DoctrineUtils::loadAllProxies($rowResult);
             $list[] = $this->domainToStorageConverter->createDomainObject($rowResult);
         }
         return new PaginatedResult(
