@@ -7,6 +7,9 @@ use ReflectionProperty;
 
 final class DoctrineUtils
 {
+    /**
+     * @var array<string|int, object>
+     */
     private array $visited = [];
     private function __construct()
     {
