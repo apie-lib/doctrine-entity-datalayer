@@ -11,6 +11,7 @@ use Doctrine\Bundle\DoctrineBundle\Middleware\DebugMiddleware;
 use Doctrine\Common\EventManager;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Exception\DriverException;
+use Doctrine\DBAL\Schema\AbstractAsset;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\ORMSetup;
@@ -120,6 +121,13 @@ class OrmBuilder
             reportFieldsWhereDeclared: true
         );
         $config->setLazyGhostObjectEnabled(true);
+        $config->setSchemaAssetsFilter(static function (string|AbstractAsset $assetName): bool {
+            if ($assetName instanceof AbstractAsset) {
+                $assetName = $assetName->getName();
+            }
+        
+            return (bool) preg_match("~^apie_~i", $assetName);
+        });
         if ($this->debugMiddleware) {
             $config->setMiddlewares([
                 $this->debugMiddleware
