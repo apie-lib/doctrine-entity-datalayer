@@ -26,7 +26,7 @@ final class DoctrineUtils
             $entity->__load();
         }
         foreach ((new ReflectionClass($entity))->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
-            if ($property->isStatic()) {
+            if ($property->isStatic() || !$property->isInitialized($entity)) {
                 continue;
             }
             $propertyValue = $property->getValue($entity);
