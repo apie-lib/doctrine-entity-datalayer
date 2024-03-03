@@ -58,7 +58,7 @@ final class EntityReindexer
         $tableName = (new ReflectionClass($this->getIndexClass($doctrineEntity)))->getShortName();
         $columnName = 'ref_' . (new ReflectionClass($doctrineEntity))->getShortName() . '_id';
         $totalDocumentQuery = sprintf(
-            'SELECT total_documents FROM (SELECT COUNT(DISTINCT %s) AS total_documents FROM %s WHERE %s IS NOT NULL)',
+            '(SELECT total_documents FROM (SELECT COUNT(DISTINCT %s) AS total_documents FROM %s WHERE %s IS NOT NULL) AS sub1)',
             $columnName,
             $tableName,
             $columnName

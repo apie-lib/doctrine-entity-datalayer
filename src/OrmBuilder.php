@@ -5,6 +5,7 @@ use Apie\Core\BoundedContext\BoundedContext;
 use Apie\Core\Entities\EntityInterface;
 use Apie\DoctrineEntityConverter\OrmBuilder as DoctrineEntityConverterOrmBuilder;
 use Apie\DoctrineEntityDatalayer\Exceptions\CouldNotUpdateDatabaseAutomatically;
+use Apie\DoctrineEntityDatalayer\Types\JsonArrayType;
 use Apie\StorageMetadata\Interfaces\StorageDtoInterface;
 use Apie\StorageMetadataBuilder\Interfaces\RootObjectInterface;
 use Doctrine\Bundle\DoctrineBundle\Middleware\DebugMiddleware;
@@ -12,6 +13,7 @@ use Doctrine\Common\EventManager;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Exception\DriverException;
 use Doctrine\DBAL\Schema\AbstractAsset;
+use Doctrine\DBAL\Types\Type;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\ORMSetup;
@@ -128,6 +130,9 @@ class OrmBuilder
         
             return (bool) preg_match("~^apie_~i", $assetName);
         });
+        if (!Type::hasType('text_json')) {
+            Type::addType('text_json', JsonArrayType::class);
+        }
         if ($this->debugMiddleware) {
             $config->setMiddlewares([
                 $this->debugMiddleware
