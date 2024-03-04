@@ -53,6 +53,7 @@ final class EntityQuery implements Stringable
             "SELECT DISTINCT entity.*
             FROM apie_resource__%s_%s entity%s
 %s
+GROUP BY entity.id
 ORDER BY %s",
             $this->boundedContextId,
             IdentifierUtils::classNameToUnderscore($this->entityClass),

@@ -54,6 +54,6 @@ final class FulltextSearchFilter implements TextSearchFilterInterface, AddsJoinF
 
     public function getOrderByCode(SortingOrder $sortingOrder): string
     {
-        return 'subquery.accuracy ' . $sortingOrder->value;
+        return 'MAX(subquery.accuracy) ' . $sortingOrder->value;
     }
 }

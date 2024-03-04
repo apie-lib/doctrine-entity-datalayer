@@ -7,5 +7,6 @@ LEFT JOIN (
                 GROUP BY entity_id
             ) subquery ON entity.id = subquery.entity_id
 WHERE (1)
-ORDER BY subquery.accuracy DESC
+GROUP BY entity.id
+ORDER BY MAX(subquery.accuracy) DESC
 LIMIT 0, 20
