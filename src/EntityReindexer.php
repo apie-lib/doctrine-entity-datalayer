@@ -73,11 +73,12 @@ final class EntityReindexer
         $query = sprintf(
             'UPDATE %s AS t
             SET idf = IFNULL(%s((%s)/(%s = t.text)), 0)
-            WHERE EXISTS (SELECT 1 FROM (SELECT text, COUNT(DISTINCT %s) AS documents_with_term FROM %s GROUP BY text) AS sub WHERE sub.text = t.text);',
+            WHERE %s IS NOT NULL AND EXISTS (SELECT 1 FROM (SELECT text, COUNT(DISTINCT %s) AS documents_with_term FROM %s GROUP BY text) AS sub WHERE sub.text = t.text);',
             $tableName,
             $connection->getDatabasePlatform() instanceof SqlitePlatform ? '' : 'log',
             $totalDocumentQuery,
             $documentWithTermQuery,
+            $columnName,
             $columnName,
             $tableName
         );
