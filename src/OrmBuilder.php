@@ -5,7 +5,6 @@ use Apie\Core\BoundedContext\BoundedContext;
 use Apie\Core\Entities\EntityInterface;
 use Apie\DoctrineEntityConverter\OrmBuilder as DoctrineEntityConverterOrmBuilder;
 use Apie\DoctrineEntityDatalayer\Exceptions\CouldNotUpdateDatabaseAutomatically;
-use Apie\DoctrineEntityDatalayer\Types\JsonArrayType;
 use Apie\StorageMetadata\Interfaces\StorageDtoInterface;
 use Apie\StorageMetadataBuilder\Interfaces\RootObjectInterface;
 use Doctrine\Bundle\DoctrineBundle\Middleware\DebugMiddleware;
@@ -13,7 +12,7 @@ use Doctrine\Common\EventManager;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Exception\DriverException;
 use Doctrine\DBAL\Schema\AbstractAsset;
-use Doctrine\DBAL\Types\Type;
+use Doctrine\DBAL\Schema\DefaultSchemaManagerFactory;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\ORMSetup;
@@ -57,13 +56,13 @@ class OrmBuilder
         try {
             $sql = $tool->getUpdateSchemaSql($classes);
             foreach ($sql as $statement) {
-                $entityManager->getConnection()->exec($statement);
+                $entityManager->getConnection()->executeStatement($statement);
             }
         } catch (DriverException $driverException) {
             if ($firstCall) {
                 $sql = $tool->getDropDatabaseSQL();
                 foreach ($sql as $statement) {
-                    $entityManager->getConnection()->exec($statement);
+                    $entityManager->getConnection()->executeStatement($statement);
                 }
                 $this->runMigrations($entityManager, false);
             }
@@ -122,6 +121,7 @@ class OrmBuilder
             $this->devMode ? null : $this->cache,
             reportFieldsWhereDeclared: true
         );
+        $config->setSchemaManagerFactory(new DefaultSchemaManagerFactory());
         $config->setLazyGhostObjectEnabled(true);
         $config->setSchemaAssetsFilter(static function (string|AbstractAsset $assetName): bool {
             if ($assetName instanceof AbstractAsset) {
