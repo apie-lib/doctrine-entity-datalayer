@@ -9,7 +9,7 @@ final class FieldTextSearchFilter implements FieldSearchFilterInterface
 {
     public function __construct(
         private readonly string $filterName,
-        private readonly string $propertyName
+        private readonly string $searchTable
     ) {
     }
 
@@ -20,9 +20,10 @@ final class FieldTextSearchFilter implements FieldSearchFilterInterface
 
     public function getWhereCondition(QuerySearch $querySearch, Connection $connection): string
     {
-        return 'entity.'
-            . $this->propertyName
-            . ' LIKE '
-            . $connection->quote(LikeUtils::toLikeString($querySearch->getSearches()[$this->filterName]));
+        return 'entity.id IN (SELECT parent_id as id FROM '
+            . $this->searchTable
+            . ' WHERE value LIKE '
+            . $connection->quote(LikeUtils::toLikeString($querySearch->getSearches()[$this->filterName]))
+            . ')';
     }
 }

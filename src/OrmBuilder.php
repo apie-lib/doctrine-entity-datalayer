@@ -130,9 +130,6 @@ class OrmBuilder
         
             return (bool) preg_match("~^apie_~i", $assetName);
         });
-        if (!Type::hasType('text_json')) {
-            Type::addType('text_json', JsonArrayType::class);
-        }
         if ($this->debugMiddleware) {
             $config->setMiddlewares([
                 $this->debugMiddleware

@@ -31,7 +31,7 @@ final class EntityQueryFilterFactory
                 foreach ($publicProperty->getAttributes(GetSearchIndexAttribute::class) as $publicPropertyAttribute) {
                     $filters[] = new FieldTextSearchFilter(
                         substr($publicProperty->name, strlen('search_')),
-                        $publicProperty->name
+                        $publicPropertyAttribute->newInstance()->arrayValueType ?? (string) $publicProperty->getType()
                     );
                 }
             }
