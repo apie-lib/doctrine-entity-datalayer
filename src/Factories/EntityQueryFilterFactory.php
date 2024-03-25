@@ -2,9 +2,12 @@
 namespace Apie\DoctrineEntityDatalayer\Factories;
 
 use Apie\Core\BoundedContext\BoundedContextId;
+use Apie\Core\Permissions\RequiresPermissionsInterface;
 use Apie\DoctrineEntityDatalayer\Query\EntityQueryFilterInterface;
 use Apie\DoctrineEntityDatalayer\Query\FieldTextSearchFilter;
 use Apie\DoctrineEntityDatalayer\Query\FulltextSearchFilter;
+use Apie\DoctrineEntityDatalayer\Query\HasPermissionFilter;
+use Apie\DoctrineEntityDatalayer\Query\RequiresPermissionFilter;
 use Apie\StorageMetadata\Attributes\GetSearchIndexAttribute;
 use Apie\StorageMetadata\Interfaces\StorageDtoInterface;
 use ReflectionClass;
@@ -25,6 +28,9 @@ final class EntityQueryFilterFactory
                 $boundedContextId
             )
         ];
+        if (in_array(RequiresPermissionsInterface::class, $domainClass->getInterfaceNames())) {
+            $filters[] = new RequiresPermissionFilter($domainClass, $boundedContextId);
+        }
 
         foreach ($doctrineClass->getProperties(ReflectionProperty::IS_PUBLIC) as $publicProperty) {
             if (str_starts_with($publicProperty->name, 'search_')) {
