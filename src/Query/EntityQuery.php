@@ -34,6 +34,7 @@ final class EntityQuery implements Stringable
             $name = $filter instanceof FieldSearchFilterInterface ? $filter->getFilterName() : '';
             if ($filter instanceof TextSearchFilterInterface && $querySearch->getTextSearch()) {
             } elseif ($filter instanceof FieldSearchFilterInterface && !empty($searches[$name])) {
+            } elseif ($filter instanceof RequiresPermissionFilter) {
             } else {
                 continue;
             }

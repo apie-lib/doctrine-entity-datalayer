@@ -6,7 +6,6 @@ use Apie\Core\Permissions\RequiresPermissionsInterface;
 use Apie\DoctrineEntityDatalayer\Query\EntityQueryFilterInterface;
 use Apie\DoctrineEntityDatalayer\Query\FieldTextSearchFilter;
 use Apie\DoctrineEntityDatalayer\Query\FulltextSearchFilter;
-use Apie\DoctrineEntityDatalayer\Query\HasPermissionFilter;
 use Apie\DoctrineEntityDatalayer\Query\RequiresPermissionFilter;
 use Apie\StorageMetadata\Attributes\GetSearchIndexAttribute;
 use Apie\StorageMetadata\Interfaces\StorageDtoInterface;
