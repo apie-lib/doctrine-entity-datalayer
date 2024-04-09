@@ -68,7 +68,7 @@ final class DoctrineEntityList implements EntityListInterface
     /**
      * @return PaginatedResult<T>
      */
-    public function toPaginatedResult(QuerySearch $search, ApieContext $apieContext = new ApieContext()): PaginatedResult
+    public function toPaginatedResult(QuerySearch $search): PaginatedResult
     {
         $query = $this->createNativeQuery($search, noPagination: false);
         $list = [];
