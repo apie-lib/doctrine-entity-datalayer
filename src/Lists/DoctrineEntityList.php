@@ -2,7 +2,6 @@
 namespace Apie\DoctrineEntityDatalayer\Lists;
 
 use Apie\Core\BoundedContext\BoundedContextId;
-use Apie\Core\Context\ApieContext;
 use Apie\Core\Datalayers\Lists\EntityListInterface;
 use Apie\Core\Datalayers\Lists\PaginatedResult;
 use Apie\Core\Datalayers\Search\QuerySearch;
