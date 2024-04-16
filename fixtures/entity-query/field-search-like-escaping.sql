@@ -3,4 +3,4 @@ SELECT DISTINCT entity.*
 WHERE (entity.id IN (SELECT parent_id as id FROM apie_name WHERE value LIKE "%You get 60\\% discount%"))
 GROUP BY entity.id
 ORDER BY entity.id ASC
-LIMIT 0, 20
+ LIMIT 20

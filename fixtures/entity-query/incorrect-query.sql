@@ -3,4 +3,4 @@ SELECT DISTINCT entity.*
 
 GROUP BY entity.id
 ORDER BY entity.id ASC
-LIMIT 0, 20
+ LIMIT 20

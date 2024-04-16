@@ -8,6 +8,7 @@ use Apie\DoctrineEntityDatalayer\Query\FieldTextSearchFilter;
 use Apie\DoctrineEntityDatalayer\Query\FulltextSearchFilter;
 use Apie\Fixtures\Entities\Order;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Platforms\SqlitePlatform;
 use Doctrine\ORM\EntityManagerInterface;
 use Generator;
 use PHPUnit\Framework\TestCase;
@@ -23,6 +24,7 @@ class EntityQueryTest extends TestCase
     {
         $connection = $this->prophesize(Connection::class);
         $connection->quote(Argument::type('string'))->will(function (array $args) { return '"' . $args[0] . '"'; });
+        $connection->getDatabasePlatform()->willReturn(new SqlitePlatform());
 
         $manager = $this->prophesize(EntityManagerInterface::class);
         $manager->getConnection()->willReturn($connection->reveal());

@@ -116,9 +116,12 @@ ORDER BY %s",
 
     private function generateOffset(): string
     {
-        return 'LIMIT '
-            . ($this->querySearch->getPageIndex() * $this->querySearch->getItemsPerPage())
-            . ', '
-            . $this->querySearch->getItemsPerPage();
+        $platform = $this->entityManager->getConnection()->getDatabasePlatform();
+
+        return $platform->modifyLimitQuery(
+            '',
+            $this->querySearch->getItemsPerPage(),
+            ($this->querySearch->getPageIndex() * $this->querySearch->getItemsPerPage()),
+        );
     }
 }

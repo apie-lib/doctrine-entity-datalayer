@@ -93,11 +93,18 @@ final class DoctrineEntityList implements EntityListInterface
         $rsm = new ResultSetMapping();
         $rsm->addScalarResult('entityCount', 'entityCount', 'integer');
 
-        $query = $entityManager->createNativeQuery(str_replace(
-            ['SELECT DISTINCT entity.*', 'GROUP BY entity.id'],
-            ['SELECT COUNT(entity.id) AS entityCount', ''],
-            $entityQuery->getWithoutPagination()
-        ), $rsm);
+        $query = $entityManager->createNativeQuery(
+            preg_replace(
+                '/order\s+by\s+.+$/i',
+                '',
+                str_replace(
+                    ['SELECT DISTINCT entity.*', 'GROUP BY entity.id'],
+                    ['SELECT COUNT(entity.id) AS entityCount', ''],
+                    $entityQuery->getWithoutPagination()
+                ),
+            ),
+            $rsm
+        );
         $result = $query->execute(hydrationMode: AbstractQuery::HYDRATE_SINGLE_SCALAR);
         return $result ?? 0;
     }

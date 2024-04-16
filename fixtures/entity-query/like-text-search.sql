@@ -9,4 +9,4 @@ JOIN (
 WHERE (1)
 GROUP BY entity.id
 ORDER BY MAX(subquery.accuracy) DESC
-LIMIT 0, 20
+ LIMIT 20
