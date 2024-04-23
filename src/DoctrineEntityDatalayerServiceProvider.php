@@ -6,7 +6,7 @@ use Illuminate\Support\ServiceProvider;
 
 /**
  * This file is generated with apie/service-provider-generator from file: doctrine_entity_datalayer.yaml
- * @codecoverageIgnore
+ * @codeCoverageIgnore
  */
 class DoctrineEntityDatalayerServiceProvider extends ServiceProvider
 {
