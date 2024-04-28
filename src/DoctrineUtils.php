@@ -3,6 +3,7 @@ namespace Apie\DoctrineEntityDatalayer;
 
 use Apie\StorageMetadata\Attributes\GetSearchIndexAttribute;
 use Apie\StorageMetadata\Attributes\OneToManyAttribute;
+use Doctrine\ORM\PersistentCollection;
 use Doctrine\Persistence\Proxy;
 use ReflectionClass;
 use ReflectionProperty;
@@ -37,19 +38,34 @@ final class DoctrineUtils
         if ($entity instanceof Proxy) {
             $entity->__load();
         }
+        if ($entity instanceof PersistentCollection) {
+            $entity->initialize();
+            foreach ($entity as $item) {
+                $this->loadAll($item);
+            }
+        }
         foreach ((new ReflectionClass($entity))->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
             if ($property->isStatic() || !$property->isInitialized($entity)) {
+                continue;
+            }
+            if (str_starts_with($property->name, '_index')) {
                 continue;
             }
             $attributes = $property->getAttributes(GetSearchIndexAttribute::class);
             if (!empty($attributes) || !$this->hasOneToManyWithProperty($property)) {
                 continue;
             }
-            
 
             $propertyValue = $property->getValue($entity);
             if (is_object($propertyValue)) {
                 $this->loadAll($propertyValue);
+            }
+            if (is_array($propertyValue)) {
+                foreach ($propertyValue as $arrayItem) {
+                    if (is_object($arrayItem)) {
+                        $this->loadAll($arrayItem);
+                    }
+                }
             }
         }
     }
