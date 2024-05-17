@@ -1,9 +1,9 @@
 <?php
 namespace Apie\DoctrineEntityDatalayer\Query;
 
-use Apie\Common\ContextConstants;
 use Apie\Core\Attributes\LoggedIn;
 use Apie\Core\BoundedContext\BoundedContextId;
+use Apie\Core\ContextConstants;
 use Apie\Core\Datalayers\Search\QuerySearch;
 use Apie\Core\Entities\EntityInterface;
 use Apie\Core\IdentifierUtils;
