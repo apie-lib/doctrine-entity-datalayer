@@ -33,6 +33,8 @@
     "doctrine/orm": "^2.16"
   },
   "require-dev": {
+    "apie/service-provider-generator": "0.11.2",
+    "illuminate/support": "*",
     "phpunit/phpunit": "^9.5",
     "phpspec/prophecy-phpunit": "^2.0"
   },
