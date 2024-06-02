@@ -30,7 +30,7 @@
     "apie/core": "self.version",
     "apie/doctrine-entity-converter": "self.version",
     "doctrine/common": "^3.4.3",
-    "doctrine/orm": "^2.16"
+    "doctrine/orm": "^2.19"
   },
   "require-dev": {
     "apie/fixtures": "self.version",
@@ -38,7 +38,7 @@
     "illuminate/support": "*",
     "phpunit/phpunit": "^9.5",
     "phpspec/prophecy-phpunit": "^2.0",
-    "symfony/cache": "^6.0"
+    "symfony/cache": "^6.4"
   },
   "minimum-stability": "dev",
   "prefer-stable": true

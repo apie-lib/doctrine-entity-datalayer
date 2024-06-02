@@ -23,7 +23,9 @@ class EntityQueryTest extends TestCase
     private function createFakeManager(): EntityManagerInterface
     {
         $connection = $this->prophesize(Connection::class);
-        $connection->quote(Argument::type('string'))->will(function (array $args) { return '"' . $args[0] . '"'; });
+        $connection->quote(Argument::type('string'))->will(function (array $args) {
+            return '"' . $args[0] . '"';
+        });
         $connection->getDatabasePlatform()->willReturn(new SqlitePlatform());
 
         $manager = $this->prophesize(EntityManagerInterface::class);

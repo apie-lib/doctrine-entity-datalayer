@@ -121,7 +121,9 @@ class OrmBuilder
             $this->devMode ? null : $this->cache,
             reportFieldsWhereDeclared: true
         );
-        $config->setSchemaManagerFactory(new DefaultSchemaManagerFactory());
+        if (class_exists(DefaultSchemaManagerFactory::class) && is_callable([$config, 'setSchemaManagerFactory'])) {
+            $config->setSchemaManagerFactory(new DefaultSchemaManagerFactory());
+        }
         $config->setLazyGhostObjectEnabled(true);
         $config->setSchemaAssetsFilter(static function (string|AbstractAsset $assetName): bool {
             if ($assetName instanceof AbstractAsset) {
