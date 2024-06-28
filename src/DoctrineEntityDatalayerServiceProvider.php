@@ -47,6 +47,7 @@ class DoctrineEntityDatalayerServiceProvider extends ServiceProvider
                 return \Apie\StorageMetadata\DomainToStorageConverter::create(
                     $app->make(\Apie\Core\Indexing\Indexer::class)
                 );
+                
             }
         );
         $this->app->singleton(
@@ -85,5 +86,6 @@ class DoctrineEntityDatalayerServiceProvider extends ServiceProvider
                 );
             }
         );
+        
     }
 }
