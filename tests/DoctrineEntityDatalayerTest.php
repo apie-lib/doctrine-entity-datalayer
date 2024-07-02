@@ -1,6 +1,7 @@
 <?php
 namespace Apie\Tests\DoctrineEntityDatalayer;
 
+use Apie\Core\FileStorage\FileStorageFactory;
 use Apie\Core\Indexing\Indexer;
 use Apie\DoctrineEntityConverter\Factories\PersistenceLayerFactory;
 use Apie\DoctrineEntityConverter\OrmBuilder as DoctrineEntityConverterOrmBuilder;
@@ -54,7 +55,7 @@ class DoctrineEntityDatalayerTest extends TestCase
                 ],
                 eventManager: null
             );
-            $domainToStorageConverter = DomainToStorageConverter::create();
+            $domainToStorageConverter = DomainToStorageConverter::create(FileStorageFactory::create());
             $doctrineListFactory = new DoctrineListFactory(
                 $ormBuilder,
                 new EntityQueryFilterFactory(),

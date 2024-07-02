@@ -45,6 +45,7 @@ class DoctrineEntityDatalayerServiceProvider extends ServiceProvider
             \Apie\StorageMetadata\DomainToStorageConverter::class,
             function ($app) {
                 return \Apie\StorageMetadata\DomainToStorageConverter::create(
+                    $app->make(\Apie\Core\FileStorage\ChainedFileStorage::class),
                     $app->make(\Apie\Core\Indexing\Indexer::class)
                 );
                 

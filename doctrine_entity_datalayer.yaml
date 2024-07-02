@@ -16,6 +16,7 @@ services:
   Apie\StorageMetadata\DomainToStorageConverter:
     factory: ['Apie\StorageMetadata\DomainToStorageConverter', 'create']
     arguments:
+      - '@Apie\Core\FileStorage\ChainedFileStorage'
       - '@Apie\Core\Indexing\Indexer'
 
   Apie\DoctrineEntityDatalayer\DoctrineEntityDatalayer:
