@@ -72,8 +72,8 @@ final class EntityReindexer
         $connection = $entityManager->getConnection();
         $query = sprintf(
             'UPDATE %s AS t
-            SET idf = COALESCE(%s((%s)/(%s = t.text)), 0)
-            WHERE %s IS NOT NULL AND EXISTS (SELECT 1 FROM (SELECT text, COUNT(DISTINCT %s) AS documents_with_term FROM %s GROUP BY text) AS sub WHERE sub.text = t.text);',
+            SET idf = COALESCE(%s((%s)/(%s = t.text LIMIT 1)), 0)
+            WHERE %s IS NOT NULL AND EXISTS (SELECT 1 FROM (SELECT text, COUNT(DISTINCT %s) AS documents_with_term FROM %s GROUP BY text) AS sub WHERE sub.text = t.text LIMIT 1);',
             $tableName,
             $connection->getDatabasePlatform() instanceof SqlitePlatform ? '' : 'log',
             $totalDocumentQuery,
