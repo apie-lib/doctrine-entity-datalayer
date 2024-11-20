@@ -1,7 +1,7 @@
 <?php
 namespace Apie\DoctrineEntityDatalayer;
 
-use Apie\Core\BoundedContext\BoundedContext;
+use Apie\Core\BoundedContext\BoundedContextId;
 use Apie\Core\Entities\EntityInterface;
 use Apie\DoctrineEntityConverter\OrmBuilder as DoctrineEntityConverterOrmBuilder;
 use Apie\DoctrineEntityDatalayer\Exceptions\CouldNotUpdateDatabaseAutomatically;
@@ -75,7 +75,7 @@ class OrmBuilder
      * @param ReflectionClass<EntityInterface> $class
      * @return ReflectionClass<StorageDtoInterface>
      */
-    public function toDoctrineClass(ReflectionClass $class, ?BoundedContext $boundedContext = null): ReflectionClass
+    public function toDoctrineClass(ReflectionClass $class, ?BoundedContextId $boundedContextId = null): ReflectionClass
     {
         $manager = $this->createEntityManager();
         foreach ($manager->getMetadataFactory()->getAllMetadata() as $metadata) {
