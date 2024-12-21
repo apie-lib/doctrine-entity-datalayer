@@ -31,9 +31,10 @@ final class RequiresPermissionFilter implements TextSearchFilterInterface, AddsJ
             $user = $context->getContext(ContextConstants::AUTHENTICATED_USER);
             assert($user instanceof PermissionInterface);
             $permissions = $user->getPermissionIdentifiers()->toStringList()->toArray();
-            if (empty($permissions)) {
-                return '1 = 0';
-            }
+            // this is for entities with RequiresPermission returning an empty array.
+            // see AccessControlListAttributeConverter.
+            $permissions[] = '';
+
             $query = array_map(
                 function (string $permission) use ($connection) {
                     return $connection->quote($permission);
@@ -42,7 +43,7 @@ final class RequiresPermissionFilter implements TextSearchFilterInterface, AddsJ
             );
             return sprintf('acl.permission IN (%s)', implode(',', $query));
         }
-        return '1 = 0';
+        return 'acl.permission IN ("")';
     }
 
     public function createJoinQuery(QuerySearch $querySearch, Connection $connection): string

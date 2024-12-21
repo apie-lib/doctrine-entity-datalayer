@@ -78,6 +78,7 @@ final class DoctrineEntityList implements EntityListInterface
         return new PaginatedResult(
             LazyLoadedListIdentifier::createFrom($this->boundedContextId, $this->entityClass),
             $this->getTotalCount(),
+            $this->getFilteredCount($search),
             new ItemList($list),
             $search->getPageIndex(),
             $search->getItemsPerPage(),
@@ -88,6 +89,30 @@ final class DoctrineEntityList implements EntityListInterface
     public function getTotalCount(): int
     {
         $entityQuery = $this->entityQueryFactory->createQueryFor(new QuerySearch(0));
+        $entityManager = $this->ormBuilder->createEntityManager();
+
+        $rsm = new ResultSetMapping();
+        $rsm->addScalarResult('entityCount', 'entityCount', 'integer');
+
+        $query = $entityManager->createNativeQuery(
+            preg_replace(
+                '/order\s+by\s+.+$/i',
+                '',
+                str_replace(
+                    ['SELECT DISTINCT entity.*', 'GROUP BY entity.id'],
+                    ['SELECT COUNT(entity.id) AS entityCount', ''],
+                    $entityQuery->getWithoutPagination()
+                ),
+            ),
+            $rsm
+        );
+        $result = $query->execute(hydrationMode: AbstractQuery::HYDRATE_SINGLE_SCALAR);
+        return $result ?? 0;
+    }
+
+    public function getFilteredCount(QuerySearch $search): int
+    {
+        $entityQuery = $this->entityQueryFactory->createQueryFor($search);
         $entityManager = $this->ormBuilder->createEntityManager();
 
         $rsm = new ResultSetMapping();
