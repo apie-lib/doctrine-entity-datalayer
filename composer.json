@@ -25,20 +25,21 @@
     ]
   },
   "require": {
-    "php": ">=8.1",
+    "php": ">=8.3",
     "apie/count-words": "self.version",
     "apie/core": "self.version",
     "apie/doctrine-entity-converter": "self.version",
     "doctrine/common": "^3.4.4",
-    "doctrine/orm": "^2.19.5"
+    "doctrine/orm": "^3.3.1"
   },
   "require-dev": {
     "apie/fixtures": "self.version",
-    "apie/service-provider-generator": "0.11.2",
+    "apie/service-provider-generator": "0.11.3",
+    "doctrine/dbal": "^4.2.1",
     "illuminate/support": "*",
-    "phpunit/phpunit": "^9.6.19",
+    "phpunit/phpunit": "^11.5.2",
     "phpspec/prophecy-phpunit": "^2.2",
-    "symfony/cache": "^6.4"
+    "symfony/cache": "^7.2"
   },
   "minimum-stability": "dev",
   "prefer-stable": true

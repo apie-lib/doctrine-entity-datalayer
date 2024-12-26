@@ -75,6 +75,7 @@ final class EntityReindexer
             SET idf = COALESCE(%s((%s)/(%s = t.text LIMIT 1)), 0)
             WHERE %s IS NOT NULL AND EXISTS (SELECT 1 FROM (SELECT text, COUNT(DISTINCT %s) AS documents_with_term FROM %s GROUP BY text) AS sub WHERE sub.text = t.text LIMIT 1);',
             $tableName,
+            // @phpstan-ignore class.notFound
             $connection->getDatabasePlatform() instanceof SqlitePlatform ? '' : 'log',
             $totalDocumentQuery,
             $documentWithTermQuery,

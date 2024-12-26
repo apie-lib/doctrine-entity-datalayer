@@ -69,13 +69,11 @@ class DoctrineEntityDatalayer implements ApieDatalayerWithFilters
         $entityManager = $this->getEntityManager();
         $domainClass = $identifier->getReferenceFor();
         $doctrineEntityClass = $this->ormBuilder->toDoctrineClass($domainClass, $boundedContextId)->name;
-        /** @var (RootObjectInterface&StorageDtoInterface)|null $doctrineEntity */
         $doctrineEntity = $entityManager->find($doctrineEntityClass, $identifier->toNative());
-        if (!$doctrineEntity) {
+        if (!($doctrineEntity instanceof StorageDtoInterface)) {
             throw new EntityNotFoundException($identifier);
         }
         assert($doctrineEntity instanceof RootObjectInterface);
-        assert($doctrineEntity instanceof StorageDtoInterface);
         DoctrineUtils::loadAllProxies($doctrineEntity);
         return $this->domainToStorageConverter->createDomainObject($doctrineEntity);
     }

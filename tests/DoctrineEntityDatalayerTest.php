@@ -18,9 +18,7 @@ use PHPUnit\Framework\TestCase;
 
 class DoctrineEntityDatalayerTest extends TestCase
 {
-    /**
-     * @test
-     */
+    #[\PHPUnit\Framework\Attributes\Test]
     public function it_can_store_a_domain_object_with_auto_migration()
     {
         $tempFolder = sys_get_temp_dir() . DIRECTORY_SEPARATOR . uniqid('doctrine-');
@@ -52,8 +50,7 @@ class DoctrineEntityDatalayerTest extends TestCase
                 connectionConfig: [
                     'driver' => 'pdo_sqlite',
                     'memory' => true
-                ],
-                eventManager: null
+                ]
             );
             $domainToStorageConverter = DomainToStorageConverter::create(FileStorageFactory::create());
             $doctrineListFactory = new DoctrineListFactory(
