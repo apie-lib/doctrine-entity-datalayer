@@ -47,7 +47,7 @@ class OrmBuilder
     ) {
         // https://github.com/doctrine/dbal/issues/3209
         if (isset($connectionConfig['url'])) {
-            $parser = new DsnParser(['mysql' => 'pdo_mysql', 'postgres' => 'pdo_pgsql']);
+            $parser = new DsnParser(['mysql' => 'pdo_mysql', 'postgres' => 'pdo_pgsql', 'sqlite' => 'pdo_sqlite']);
             /** @var array<string, mixed> $options */
             $options = [];
             try {
