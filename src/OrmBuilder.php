@@ -26,6 +26,10 @@ class OrmBuilder
 {
     private ?EntityManagerInterface $createdEntityManager = null;
     /**
+     * @var array<string, mixed> $connectionConfig
+     */
+    private readonly array $connectionConfig;
+    /**
      * @param array<string, mixed> $connectionConfig
      */
     public function __construct(
@@ -36,9 +40,32 @@ class OrmBuilder
         private readonly ?string $proxyDir,
         private readonly ?CacheItemPoolInterface $cache,
         private readonly string $path,
-        private readonly array $connectionConfig,
+        array $connectionConfig,
         private readonly ?DebugMiddleware $debugMiddleware = null
     ) {
+        // https://github.com/doctrine/dbal/issues/3209
+        if (isset($connectionConfig['url'])) {
+            $dsn = parse_url($connectionConfig['url']);
+            if ($dsn !== false) {
+                parse_str($dsn['query'] ?? '', $queryParams);
+                $options = [
+                    'driver'   => $dsn['scheme'], // e.g., 'mysql'
+                    'host'     => $dsn['host'],
+                    'port'     => isset($dsn['port']) ? (int)$dsn['port'] : null,
+                    'dbname'   => ltrim($dsn['path'] ?? '', '/'), // Remove leading slash
+                    'user'     => $dsn['user'] ?? null,
+                    'password' => $dsn['pass'] ?? null,
+                    'serverVersion' => $queryParams['serverVersion'] ?? null,
+                ];
+                foreach ($options as $option => $value) {
+                    if (!isset($connectionConfig[$option]) && $value !== null) {
+                        $connectionConfig[$option] = $value;
+                    }
+                }
+                unset($connectionConfig['url']);
+            }
+        }
+        $this->connectionConfig = $connectionConfig;
     }
 
     public function getGeneratedNamespace(): string
