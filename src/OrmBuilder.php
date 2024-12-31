@@ -10,8 +10,10 @@ use Apie\StorageMetadataBuilder\Interfaces\RootObjectInterface;
 use Doctrine\Bundle\DoctrineBundle\Middleware\DebugMiddleware;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Exception\DriverException;
+use Doctrine\DBAL\Exception\MalformedDsnException;
 use Doctrine\DBAL\Schema\AbstractAsset;
 use Doctrine\DBAL\Schema\DefaultSchemaManagerFactory;
+use Doctrine\DBAL\Tools\DsnParser;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\ORMSetup;
@@ -45,29 +47,22 @@ class OrmBuilder
     ) {
         // https://github.com/doctrine/dbal/issues/3209
         if (isset($connectionConfig['url'])) {
-            $dsn = parse_url($connectionConfig['url']);
-            if ($dsn !== false) {
-                parse_str($dsn['query'] ?? '', $queryParams);
-                $options = [
-                    'driver'   => $dsn['scheme'], // e.g., 'mysql'
-                    'host'     => $dsn['host'],
-                    'port'     => isset($dsn['port']) ? (int)$dsn['port'] : null,
-                    'dbname'   => ltrim($dsn['path'] ?? '', '/'), // Remove leading slash
-                    'user'     => $dsn['user'] ?? null,
-                    'password' => $dsn['pass'] ?? null,
-                    'serverVersion' => $queryParams['serverVersion'] ?? null,
-                ];
-                foreach ($options as $option => $value) {
-                    if (!isset($connectionConfig[$option]) && $value !== null) {
-                        $connectionConfig[$option] = $value;
-                    }
-                }
-                unset($connectionConfig['url']);
+            $parser = new DsnParser(['mysql' => 'pdo_mysql', 'postgres' => 'pdo_pgsql']);
+            /** @var array<string, mixed> $options */
+            $options = [];
+            try {
+                $options = $parser->parse($connectionConfig['url']);
+            } catch (MalformedDsnException) {
             }
+            foreach ($options as $option => $value) {
+                if (!isset($connectionConfig[$option]) && $value !== null) {
+                    $connectionConfig[$option] = $value;
+                }
+            }
+            unset($connectionConfig['url']);
         }
         $this->connectionConfig = $connectionConfig;
     }
-
     public function getGeneratedNamespace(): string
     {
         return 'Generated\\ApieEntities\\';
