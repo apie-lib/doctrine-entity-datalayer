@@ -17,6 +17,7 @@ use Apie\StorageMetadataBuilder\Interfaces\HasIndexInterface;
 use Apie\StorageMetadataBuilder\Interfaces\RootObjectInterface;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Exception\EntityIdentityCollisionException;
 use ReflectionClass;
 use ReflectionProperty;
 
@@ -89,10 +90,11 @@ class DoctrineEntityDatalayer implements ApieDatalayerWithFilters
             $entity,
             new ReflectionClass($doctrineEntityClass)
         );
-        $entityManager->persist($doctrineEntity);
+
         try {
+            $entityManager->persist($doctrineEntity);
             $entityManager->flush();
-        } catch (UniqueConstraintViolationException $uniqueConstraintViolation) {
+        } catch (UniqueConstraintViolationException|EntityIdentityCollisionException $uniqueConstraintViolation) {
             throw new InsertConflict($uniqueConstraintViolation);
         }
         // TODO: only do for entities with Auto-increment id's
