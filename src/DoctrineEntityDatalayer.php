@@ -147,4 +147,32 @@ class DoctrineEntityDatalayer implements ApieDatalayerWithFilters
         $entityManager->remove($doctrineEntity);
         $entityManager->flush();
     }
+
+    public function upsert(EntityInterface $entity, ?BoundedContextId $boundedContextId): EntityInterface
+    {
+        $entityManager = $this->getEntityManager();
+        $identifier = $entity->getId();
+        $domainClass = $identifier->getReferenceFor();
+        $doctrineEntityClass = $this->ormBuilder->toDoctrineClass($domainClass, $boundedContextId);
+        /** @var (StorageDtoInterface&RootObjectInterface)|null $doctrineEntity */
+        $doctrineEntity = $entityManager->find($doctrineEntityClass->name, $identifier->toNative());
+        if ($doctrineEntity) {
+            $this->domainToStorageConverter->injectExistingStorageObject(
+                $entity,
+                $doctrineEntity
+            );
+        } else {
+            $doctrineEntity = $this->domainToStorageConverter->createStorageObject(
+                $entity,
+                $doctrineEntityClass
+            );
+        }
+        $entityManager->persist($doctrineEntity);
+        $entityManager->flush();
+
+        if ($doctrineEntity instanceof HasIndexInterface) {
+            $this->entityReindexer->updateIndex($doctrineEntity, $entity);
+        }
+        return $entity;
+    }
 }
