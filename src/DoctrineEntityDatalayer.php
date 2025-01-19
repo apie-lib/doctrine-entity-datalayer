@@ -2,19 +2,24 @@
 namespace Apie\DoctrineEntityDatalayer;
 
 use Apie\Core\BoundedContext\BoundedContextId;
+use Apie\Core\Context\ApieContext;
 use Apie\Core\Datalayers\ApieDatalayerWithFilters;
 use Apie\Core\Datalayers\Lists\EntityListInterface;
 use Apie\Core\Entities\EntityInterface;
+use Apie\Core\Enums\ScalarType;
 use Apie\Core\Exceptions\EntityNotFoundException;
 use Apie\Core\Identifiers\IdentifierInterface;
 use Apie\Core\Lists\StringList;
+use Apie\Core\Metadata\MetadataFactory;
 use Apie\DoctrineEntityDatalayer\Exceptions\InsertConflict;
 use Apie\DoctrineEntityDatalayer\Factories\DoctrineListFactory;
+use Apie\StorageMetadata\Attributes\GetMethodAttribute;
 use Apie\StorageMetadata\Attributes\GetSearchIndexAttribute;
 use Apie\StorageMetadata\DomainToStorageConverter;
 use Apie\StorageMetadata\Interfaces\StorageDtoInterface;
 use Apie\StorageMetadataBuilder\Interfaces\HasIndexInterface;
 use Apie\StorageMetadataBuilder\Interfaces\RootObjectInterface;
+use Apie\TypeConverter\ReflectionTypeFactory;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Exception\EntityIdentityCollisionException;
@@ -40,6 +45,25 @@ class DoctrineEntityDatalayer implements ApieDatalayerWithFilters
         }
 
         return $this->entityManager;
+    }
+
+    public function getOrderByColumns(ReflectionClass $class, BoundedContextId $boundedContextId): ?StringList
+    {
+        $doctrineEntityClass = $this->ormBuilder->toDoctrineClass($class);
+        $list = [];
+        foreach ($doctrineEntityClass->getProperties(ReflectionProperty::IS_PUBLIC) as $publicProperty) {
+            foreach ($publicProperty->getAttributes(GetMethodAttribute::class) as $publicPropertyAttribute) {
+                $metadata = MetadataFactory::getModificationMetadata(
+                    $publicProperty->getType() ?? ReflectionTypeFactory::createReflectionType('mixed'),
+                    new ApieContext()
+                );
+                if (in_array($metadata->toScalarType(), ScalarType::PRIMITIVES)) {
+                    $list[] = $publicProperty->name;
+                }
+                break;
+            }
+        }
+        return new StringList($list);
     }
 
     public function getFilterColumns(ReflectionClass $class, BoundedContextId $boundedContextId): StringList

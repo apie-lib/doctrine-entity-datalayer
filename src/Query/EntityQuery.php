@@ -30,10 +30,12 @@ final class EntityQuery implements Stringable
         EntityQueryFilterInterface... $filters
     ) {
         $searches = $querySearch->getSearches();
+        $orderBy = $this->querySearch->getOrderBy();
         foreach ($filters as $filter) {
-            $name = $filter instanceof FieldSearchFilterInterface ? $filter->getFilterName() : '';
+            $name = is_callable([$filter, 'getFilterName']) ? $filter->getFilterName() : '';
             if ($filter instanceof TextSearchFilterInterface && $querySearch->getTextSearch()) {
             } elseif ($filter instanceof FieldSearchFilterInterface && !empty($searches[$name])) {
+            } elseif ($filter instanceof OrderByFilterInterface && !empty($orderBy[$name])) {
             } elseif ($filter instanceof RequiresPermissionFilter) {
             } else {
                 continue;
@@ -109,9 +111,21 @@ ORDER BY %s",
     private function generateOrderBy(): string
     {
         if (empty($this->orderByFilters)) {
-            return 'entity.id ASC';
+            return 'entity.created_at DESC';
         }
-        return reset($this->orderByFilters)->getOrderByCode(SortingOrder::DESCENDING);
+        $orderBy = $this->querySearch->getOrderBy()->toArray();
+        return implode(
+            ', ',
+            array_map(
+                function (OrderByFilterInterface $filter) use ($orderBy) {
+                    if (is_callable([$filter, 'getFilterName'])) {
+                        return $filter->getOrderByCode(SortingOrder::from($orderBy[$filter->getFilterName()]));
+                    }
+                    return $filter->getOrderByCode(SortingOrder::DESCENDING);
+                },
+                $this->orderByFilters
+            )
+        );
     }
 
     private function generateOffset(): string
