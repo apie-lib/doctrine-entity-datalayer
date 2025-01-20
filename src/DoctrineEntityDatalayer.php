@@ -9,12 +9,12 @@ use Apie\Core\Entities\EntityInterface;
 use Apie\Core\Enums\ScalarType;
 use Apie\Core\Exceptions\EntityNotFoundException;
 use Apie\Core\Identifiers\IdentifierInterface;
-use Apie\Core\Lists\StringList;
+use Apie\Core\Lists\StringSet;
 use Apie\Core\Metadata\MetadataFactory;
 use Apie\DoctrineEntityDatalayer\Exceptions\InsertConflict;
 use Apie\DoctrineEntityDatalayer\Factories\DoctrineListFactory;
-use Apie\StorageMetadata\Attributes\GetMethodAttribute;
 use Apie\StorageMetadata\Attributes\GetSearchIndexAttribute;
+use Apie\StorageMetadata\Attributes\PropertyAttribute;
 use Apie\StorageMetadata\DomainToStorageConverter;
 use Apie\StorageMetadata\Interfaces\StorageDtoInterface;
 use Apie\StorageMetadataBuilder\Interfaces\HasIndexInterface;
@@ -47,26 +47,27 @@ class DoctrineEntityDatalayer implements ApieDatalayerWithFilters
         return $this->entityManager;
     }
 
-    public function getOrderByColumns(ReflectionClass $class, BoundedContextId $boundedContextId): ?StringList
+    public function getOrderByColumns(ReflectionClass $class, BoundedContextId $boundedContextId): ?StringSet
     {
         $doctrineEntityClass = $this->ormBuilder->toDoctrineClass($class);
         $list = [];
         foreach ($doctrineEntityClass->getProperties(ReflectionProperty::IS_PUBLIC) as $publicProperty) {
-            foreach ($publicProperty->getAttributes(GetMethodAttribute::class) as $publicPropertyAttribute) {
+            foreach ($publicProperty->getAttributes(PropertyAttribute::class) as $publicPropertyAttribute) {
                 $metadata = MetadataFactory::getModificationMetadata(
                     $publicProperty->getType() ?? ReflectionTypeFactory::createReflectionType('mixed'),
                     new ApieContext()
                 );
-                if (in_array($metadata->toScalarType(), ScalarType::PRIMITIVES)) {
-                    $list[] = $publicProperty->name;
+
+                if (in_array($metadata->toScalarType(true), ScalarType::PRIMITIVES)) {
+                    $list[] = $publicPropertyAttribute->newInstance()->propertyName;
                 }
                 break;
             }
         }
-        return new StringList($list);
+        return new StringSet($list);
     }
 
-    public function getFilterColumns(ReflectionClass $class, BoundedContextId $boundedContextId): StringList
+    public function getFilterColumns(ReflectionClass $class, BoundedContextId $boundedContextId): StringSet
     {
         $doctrineEntityClass = $this->ormBuilder->toDoctrineClass($class);
         $list = [];
@@ -77,7 +78,7 @@ class DoctrineEntityDatalayer implements ApieDatalayerWithFilters
                 }
             }
         }
-        return new StringList($list);
+        return new StringSet($list);
     }
 
     public function all(ReflectionClass $class, ?BoundedContextId $boundedContextId = null): EntityListInterface

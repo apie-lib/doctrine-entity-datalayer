@@ -14,6 +14,7 @@ use Apie\DoctrineEntityDatalayer\Query\OrderBySearchFilter;
 use Apie\DoctrineEntityDatalayer\Query\RequiresPermissionFilter;
 use Apie\StorageMetadata\Attributes\GetMethodAttribute;
 use Apie\StorageMetadata\Attributes\GetSearchIndexAttribute;
+use Apie\StorageMetadata\Attributes\PropertyAttribute;
 use Apie\StorageMetadata\Interfaces\StorageDtoInterface;
 use Apie\TypeConverter\ReflectionTypeFactory;
 use ReflectionClass;
@@ -52,13 +53,15 @@ final class EntityQueryFilterFactory
                         $publicPropertyAttribute->newInstance()->methodName,
                         $publicProperty->name
                     );
-                    $metadata = MetadataFactory::getModificationMetadata(
-                        $publicProperty->getType() ?? ReflectionTypeFactory::createReflectionType('mixed'),
-                        new ApieContext()
-                    );
-                    if (in_array($metadata->toScalarType(), ScalarType::PRIMITIVES)) {
+                }
+                $metadata = MetadataFactory::getModificationMetadata(
+                    $publicProperty->getType() ?? ReflectionTypeFactory::createReflectionType('mixed'),
+                    new ApieContext()
+                );
+                if (in_array($metadata->toScalarType(true), ScalarType::PRIMITIVES)) {
+                    foreach ($publicProperty->getAttributes(PropertyAttribute::class) as $publicPropertyAttribute) {
                         $filters[] = new OrderBySearchFilter(
-                            $publicPropertyAttribute->newInstance()->methodName,
+                            $publicPropertyAttribute->newInstance()->propertyName,
                             $publicProperty->getName()
                         );
                     }
