@@ -4,10 +4,12 @@ namespace Apie\DoctrineEntityDatalayer;
 use Apie\Core\BoundedContext\BoundedContextId;
 use Apie\Core\Entities\EntityInterface;
 use Apie\DoctrineEntityConverter\OrmBuilder as DoctrineEntityConverterOrmBuilder;
+use Apie\DoctrineEntityDatalayer\Middleware\RunMigrationsOnConnect;
 use Apie\DoctrineEntityDatalayer\Exceptions\CouldNotUpdateDatabaseAutomatically;
 use Apie\StorageMetadata\Interfaces\StorageDtoInterface;
 use Apie\StorageMetadataBuilder\Interfaces\RootObjectInterface;
 use Doctrine\Bundle\DoctrineBundle\Middleware\DebugMiddleware;
+use Doctrine\Common\EventManager;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Exception\DriverException;
 use Doctrine\DBAL\Exception\MalformedDsnException;
@@ -149,17 +151,22 @@ class OrmBuilder
         
             return (bool) preg_match("~^apie_~i", $assetName);
         });
+        $middlewares = [];
         if ($this->debugMiddleware) {
-            $config->setMiddlewares([
-                $this->debugMiddleware
-            ]);
+            $middlewares[] = $this->debugMiddleware;
         }
+        if ($this->runMigrations) {
+            $middlewares[] = new RunMigrationsOnConnect(
+                function () {
+                    $this->runMigrations($this->createdEntityManager);
+                }
+            );
+        }
+        $config->setMiddlewares($middlewares);
         if (!$this->createdEntityManager || !$this->createdEntityManager->isOpen()) {
             $connection = DriverManager::getConnection($this->connectionConfig, $config);
-            $this->createdEntityManager = new EntityManager($connection, $config);
-            if ($this->runMigrations) {
-                $this->runMigrations($this->createdEntityManager);
-            }
+            $eventManager = new EventManager();
+            $this->createdEntityManager = new EntityManager($connection, $config, $eventManager);
         }
         
         return $this->createdEntityManager;
