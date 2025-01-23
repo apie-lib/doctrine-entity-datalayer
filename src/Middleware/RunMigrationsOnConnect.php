@@ -2,13 +2,12 @@
 
 namespace Apie\DoctrineEntityDatalayer\Middleware;
 
-use Doctrine\DBAL\Driver\API\ExceptionConverter;
-use Doctrine\DBAL\Driver\Middleware;
-use Doctrine\DBAL\Driver\Connection;
 use Doctrine\DBAL\Driver;
+use Doctrine\DBAL\Driver\API\ExceptionConverter;
+use Doctrine\DBAL\Driver\Connection;
+use Doctrine\DBAL\Driver\Middleware;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\ServerVersionProvider;
-use SensitiveParameter;
 
 class RunMigrationsOnConnect implements Middleware
 {
