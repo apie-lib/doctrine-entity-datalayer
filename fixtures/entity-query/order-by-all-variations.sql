@@ -10,6 +10,7 @@ WHERE (1)
 AND (entity.id IN (SELECT parent_id as id FROM apie_name WHERE value LIKE "%Exact match%"))
 AND (1)
 AND (1)
+AND (entity.requires_update IS NOT NULL AND entity.requires_update <= CURRENT_TIMESTAMP())
 GROUP BY entity.id
-ORDER BY MAX(subquery.accuracy) DESC, entity.apie_name ASC, entity.apie_value DESC
+ORDER BY MAX(subquery.accuracy) DESC, entity.apie_name ASC, entity.apie_value DESC, entity.requires_update ASC
  LIMIT 20

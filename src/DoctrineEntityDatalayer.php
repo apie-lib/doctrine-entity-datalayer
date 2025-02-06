@@ -6,6 +6,7 @@ use Apie\Core\Context\ApieContext;
 use Apie\Core\Datalayers\ApieDatalayerWithFilters;
 use Apie\Core\Datalayers\Lists\EntityListInterface;
 use Apie\Core\Entities\EntityInterface;
+use Apie\Core\Entities\RequiresRecalculatingInterface;
 use Apie\Core\Enums\ScalarType;
 use Apie\Core\Exceptions\EntityNotFoundException;
 use Apie\Core\Identifiers\IdentifierInterface;
@@ -51,6 +52,9 @@ class DoctrineEntityDatalayer implements ApieDatalayerWithFilters
     {
         $doctrineEntityClass = $this->ormBuilder->toDoctrineClass($class);
         $list = [];
+        if (in_array(RequiresRecalculatingInterface::class, $class->getInterfaceNames())) {
+            $list[] = 'dateToRecalculate';
+        }
         foreach ($doctrineEntityClass->getProperties(ReflectionProperty::IS_PUBLIC) as $publicProperty) {
             foreach ($publicProperty->getAttributes(PropertyAttribute::class) as $publicPropertyAttribute) {
                 $metadata = MetadataFactory::getModificationMetadata(

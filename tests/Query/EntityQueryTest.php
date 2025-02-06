@@ -7,6 +7,7 @@ use Apie\DoctrineEntityDatalayer\Query\EntityQuery;
 use Apie\DoctrineEntityDatalayer\Query\FieldTextSearchFilter;
 use Apie\DoctrineEntityDatalayer\Query\FulltextSearchFilter;
 use Apie\DoctrineEntityDatalayer\Query\OrderBySearchFilter;
+use Apie\DoctrineEntityDatalayer\Query\SearchByRequireUpdateFilter;
 use Apie\Fixtures\Entities\Order;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Platforms\SqlitePlatform;
@@ -47,6 +48,7 @@ class EntityQueryTest extends TestCase
             new FieldTextSearchFilter('value', 'apie_value'),
             new OrderBySearchFilter('name', 'apie_name'),
             new OrderBySearchFilter('value', 'apie_value'),
+            new SearchByRequireUpdateFilter()
         );
         $actual = str_replace("\r", '', $testItem->__toString());
         // file_put_contents($expectedOutputPath, $actual);

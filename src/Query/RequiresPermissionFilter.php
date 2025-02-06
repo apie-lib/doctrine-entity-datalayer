@@ -27,6 +27,9 @@ final class RequiresPermissionFilter implements TextSearchFilterInterface, AddsJ
     public function getWhereCondition(QuerySearch $querySearch, Connection $connection): string
     {
         $context = $querySearch->getApieContext();
+        if ($context->getContext(ContextConstants::DISABLE_CONTEXT_FILTER, false)) {
+            return '1';
+        }
         if ((new LoggedIn(PermissionInterface::class))->applies($context)) {
             $user = $context->getContext(ContextConstants::AUTHENTICATED_USER);
             assert($user instanceof PermissionInterface);

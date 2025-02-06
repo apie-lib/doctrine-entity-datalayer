@@ -2,6 +2,7 @@
 namespace Apie\DoctrineEntityDatalayer\Lists;
 
 use Apie\Core\BoundedContext\BoundedContextId;
+use Apie\Core\Context\ApieContext;
 use Apie\Core\Datalayers\Lists\EntityListInterface;
 use Apie\Core\Datalayers\Lists\PaginatedResult;
 use Apie\Core\Datalayers\Search\QuerySearch;
@@ -77,7 +78,7 @@ final class DoctrineEntityList implements EntityListInterface
         }
         return new PaginatedResult(
             LazyLoadedListIdentifier::createFrom($this->boundedContextId, $this->entityClass),
-            $this->getTotalCount(),
+            $this->getTotalCount($search->getApieContext()),
             $this->getFilteredCount($search),
             new ItemList($list),
             $search->getPageIndex(),
@@ -86,9 +87,9 @@ final class DoctrineEntityList implements EntityListInterface
         );
     }
 
-    public function getTotalCount(): int
+    public function getTotalCount(ApieContext $apieContext = new ApieContext()): int
     {
-        $entityQuery = $this->entityQueryFactory->createQueryFor(new QuerySearch(0));
+        $entityQuery = $this->entityQueryFactory->createQueryFor(new QuerySearch(0, apieContext: $apieContext));
         $entityManager = $this->ormBuilder->createEntityManager();
 
         $rsm = new ResultSetMapping();

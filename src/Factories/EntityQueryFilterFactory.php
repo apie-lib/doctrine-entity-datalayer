@@ -4,6 +4,7 @@ namespace Apie\DoctrineEntityDatalayer\Factories;
 
 use Apie\Core\BoundedContext\BoundedContextId;
 use Apie\Core\Context\ApieContext;
+use Apie\Core\Entities\RequiresRecalculatingInterface;
 use Apie\Core\Enums\ScalarType;
 use Apie\Core\Metadata\MetadataFactory;
 use Apie\Core\Permissions\RequiresPermissionsInterface;
@@ -12,6 +13,7 @@ use Apie\DoctrineEntityDatalayer\Query\FieldTextSearchFilter;
 use Apie\DoctrineEntityDatalayer\Query\FulltextSearchFilter;
 use Apie\DoctrineEntityDatalayer\Query\OrderBySearchFilter;
 use Apie\DoctrineEntityDatalayer\Query\RequiresPermissionFilter;
+use Apie\DoctrineEntityDatalayer\Query\SearchByRequireUpdateFilter;
 use Apie\StorageMetadata\Attributes\GetMethodAttribute;
 use Apie\StorageMetadata\Attributes\GetSearchIndexAttribute;
 use Apie\StorageMetadata\Attributes\PropertyAttribute;
@@ -37,6 +39,9 @@ final class EntityQueryFilterFactory
         ];
         if (in_array(RequiresPermissionsInterface::class, $domainClass->getInterfaceNames())) {
             $filters[] = new RequiresPermissionFilter($domainClass, $boundedContextId);
+        }
+        if (in_array(RequiresRecalculatingInterface::class, $domainClass->getInterfaceNames())) {
+            $filters[] = new SearchByRequireUpdateFilter();
         }
 
         foreach ($doctrineClass->getProperties(ReflectionProperty::IS_PUBLIC) as $publicProperty) {

@@ -119,7 +119,10 @@ ORDER BY %s",
             array_map(
                 function (OrderByFilterInterface $filter) use ($orderBy) {
                     if (is_callable([$filter, 'getFilterName'])) {
-                        return $filter->getOrderByCode(SortingOrder::from($orderBy[$filter->getFilterName()]));
+                        $filterName = $filter->getFilterName();
+                        if (isset($orderBy[$filterName])) {
+                            return $filter->getOrderByCode(SortingOrder::from($orderBy[$filterName]));
+                        }
                     }
                     return $filter->getOrderByCode(SortingOrder::DESCENDING);
                 },
