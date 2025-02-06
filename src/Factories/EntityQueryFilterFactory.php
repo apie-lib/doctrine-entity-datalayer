@@ -37,9 +37,6 @@ final class EntityQueryFilterFactory
                 $boundedContextId
             )
         ];
-        if (in_array(RequiresPermissionsInterface::class, $domainClass->getInterfaceNames())) {
-            $filters[] = new RequiresPermissionFilter($domainClass, $boundedContextId);
-        }
         if (in_array(RequiresRecalculatingInterface::class, $domainClass->getInterfaceNames())) {
             $filters[] = new SearchByRequireUpdateFilter();
         }
@@ -73,6 +70,11 @@ final class EntityQueryFilterFactory
                 }
             }
         }
+
+        if (in_array(RequiresPermissionsInterface::class, $domainClass->getInterfaceNames())) {
+            $filters[] = new RequiresPermissionFilter($domainClass, $boundedContextId);
+        }
+        
         return $filters;
     }
 }
