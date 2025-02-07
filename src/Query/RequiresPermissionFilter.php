@@ -60,6 +60,6 @@ final class RequiresPermissionFilter implements TextSearchFilterInterface, AddsJ
 
     public function getOrderByCode(SortingOrder $sortingOrder): string
     {
-        return 'entity.id ' . $sortingOrder->value;
+        return '';
     }
 }

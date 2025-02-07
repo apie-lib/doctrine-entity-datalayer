@@ -110,25 +110,26 @@ ORDER BY %s",
 
     private function generateOrderBy(): string
     {
-        if (empty($this->orderByFilters)) {
-            return 'entity.created_at DESC';
-        }
         $orderBy = $this->querySearch->getOrderBy()->toArray();
-        return implode(
+        $query = implode(
             ', ',
-            array_map(
-                function (OrderByFilterInterface $filter) use ($orderBy) {
-                    if (is_callable([$filter, 'getFilterName'])) {
-                        $filterName = $filter->getFilterName();
-                        if (isset($orderBy[$filterName])) {
-                            return $filter->getOrderByCode(SortingOrder::from($orderBy[$filterName]));
+            array_filter(
+                array_map(
+                    function (OrderByFilterInterface $filter) use ($orderBy) {
+                        if (is_callable([$filter, 'getFilterName'])) {
+                            $filterName = $filter->getFilterName();
+                            if (isset($orderBy[$filterName])) {
+                                return $filter->getOrderByCode(SortingOrder::from($orderBy[$filterName]));
+                            }
                         }
-                    }
-                    return $filter->getOrderByCode(SortingOrder::DESCENDING);
-                },
-                $this->orderByFilters
+                        return $filter->getOrderByCode(SortingOrder::DESCENDING);
+                    },
+                    $this->orderByFilters
+                )
             )
         );
+        
+        return empty($query) ? 'entity.created_at DESC' : $query;
     }
 
     private function generateOffset(): string
