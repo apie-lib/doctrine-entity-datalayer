@@ -51,13 +51,39 @@ class DoctrineEntityDatalayerServiceProvider extends ServiceProvider
                 
             }
         );
+        $this->app->bind(\Apie\DoctrineEntityDatalayer\IndexStrategy\IndexStrategyInterface::class, \Apie\DoctrineEntityDatalayer\IndexStrategy\DirectIndexStrategy::class);
+        
+        $this->app->singleton(
+            \Apie\DoctrineEntityDatalayer\IndexStrategy\DirectIndexStrategy::class,
+            function ($app) {
+                return new \Apie\DoctrineEntityDatalayer\IndexStrategy\DirectIndexStrategy(
+                    $app->make(\Apie\DoctrineEntityDatalayer\EntityReindexer::class)
+                );
+            }
+        );
+        $this->app->singleton(
+            \Apie\DoctrineEntityDatalayer\IndexStrategy\IndexAfterResponseIsSentStrategy::class,
+            function ($app) {
+                return new \Apie\DoctrineEntityDatalayer\IndexStrategy\IndexAfterResponseIsSentStrategy(
+                    $app->make(\Apie\DoctrineEntityDatalayer\EntityReindexer::class)
+                );
+            }
+        );
+        \Apie\ServiceProviderGenerator\TagMap::register(
+            $this->app,
+            \Apie\DoctrineEntityDatalayer\IndexStrategy\IndexAfterResponseIsSentStrategy::class,
+            array(
+              0 => 'kernel.event_subscriber',
+            )
+        );
+        $this->app->tag([\Apie\DoctrineEntityDatalayer\IndexStrategy\IndexAfterResponseIsSentStrategy::class], 'kernel.event_subscriber');
         $this->app->singleton(
             \Apie\DoctrineEntityDatalayer\DoctrineEntityDatalayer::class,
             function ($app) {
                 return new \Apie\DoctrineEntityDatalayer\DoctrineEntityDatalayer(
                     $app->make(\Apie\DoctrineEntityDatalayer\OrmBuilder::class),
                     $app->make(\Apie\StorageMetadata\DomainToStorageConverter::class),
-                    $app->make(\Apie\DoctrineEntityDatalayer\EntityReindexer::class),
+                    $app->make(\Apie\DoctrineEntityDatalayer\IndexStrategy\IndexStrategyInterface::class),
                     $app->make(\Apie\DoctrineEntityDatalayer\Factories\DoctrineListFactory::class)
                 );
             }

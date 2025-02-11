@@ -32,7 +32,8 @@ final class EntityReindexer
      */
     public function updateIndex(
         HasIndexInterface $doctrineEntity,
-        EntityInterface $entity
+        EntityInterface $entity,
+        bool $skipIdf = false
     ): void {
         $entityManager = $this->ormBuilder->createEntityManager();
         $newIndexes = $this->indexer->getIndexesForObject(
@@ -43,7 +44,9 @@ final class EntityReindexer
         $termsToUpdate = array_keys($newIndexes);
         $entityManager->persist($doctrineEntity);
         $entityManager->flush();
-        $this->recalculateIdf($doctrineEntity, $termsToUpdate);
+        if (!$skipIdf) {
+            $this->recalculateIdf($doctrineEntity, $termsToUpdate);
+        }
     }
 
     /**

@@ -19,11 +19,22 @@ services:
       - '@Apie\Core\FileStorage\ChainedFileStorage'
       - '@Apie\Core\Indexing\Indexer'
 
+  Apie\DoctrineEntityDatalayer\IndexStrategy\IndexStrategyInterface:
+    alias: Apie\DoctrineEntityDatalayer\IndexStrategy\DirectIndexStrategy
+
+  Apie\DoctrineEntityDatalayer\IndexStrategy\DirectIndexStrategy:
+    arguments:
+      - '@Apie\DoctrineEntityDatalayer\EntityReindexer'
+  Apie\DoctrineEntityDatalayer\IndexStrategy\IndexAfterResponseIsSentStrategy:
+    arguments:
+      - '@Apie\DoctrineEntityDatalayer\EntityReindexer'
+    tags: ['kernel.event_subscriber']
+
   Apie\DoctrineEntityDatalayer\DoctrineEntityDatalayer:
     arguments:
       - '@Apie\DoctrineEntityDatalayer\OrmBuilder'
       - '@Apie\StorageMetadata\DomainToStorageConverter'
-      - '@Apie\DoctrineEntityDatalayer\EntityReindexer'
+      - '@Apie\DoctrineEntityDatalayer\IndexStrategy\IndexStrategyInterface'
       - '@Apie\DoctrineEntityDatalayer\Factories\DoctrineListFactory'
     tags:
       - apie.datalayer

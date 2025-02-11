@@ -9,6 +9,7 @@ use Apie\DoctrineEntityDatalayer\DoctrineEntityDatalayer;
 use Apie\DoctrineEntityDatalayer\EntityReindexer;
 use Apie\DoctrineEntityDatalayer\Factories\DoctrineListFactory;
 use Apie\DoctrineEntityDatalayer\Factories\EntityQueryFilterFactory;
+use Apie\DoctrineEntityDatalayer\IndexStrategy\DirectIndexStrategy;
 use Apie\DoctrineEntityDatalayer\OrmBuilder;
 use Apie\Fixtures\BoundedContextFactory;
 use Apie\Fixtures\Entities\UserWithAddress;
@@ -61,7 +62,7 @@ class DoctrineEntityDatalayerTest extends TestCase
             $testItem = new DoctrineEntityDatalayer(
                 $ormBuilder,
                 $domainToStorageConverter,
-                new EntityReindexer($ormBuilder, Indexer::create()),
+                new DirectIndexStrategy(new EntityReindexer($ormBuilder, Indexer::create())),
                 $doctrineListFactory
             );
             $entity = new UserWithAddress(

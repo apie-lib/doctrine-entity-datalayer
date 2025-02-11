@@ -14,6 +14,7 @@ use Apie\Core\Lists\StringSet;
 use Apie\Core\Metadata\MetadataFactory;
 use Apie\DoctrineEntityDatalayer\Exceptions\InsertConflict;
 use Apie\DoctrineEntityDatalayer\Factories\DoctrineListFactory;
+use Apie\DoctrineEntityDatalayer\IndexStrategy\IndexStrategyInterface;
 use Apie\StorageMetadata\Attributes\GetSearchIndexAttribute;
 use Apie\StorageMetadata\Attributes\PropertyAttribute;
 use Apie\StorageMetadata\DomainToStorageConverter;
@@ -34,7 +35,7 @@ class DoctrineEntityDatalayer implements ApieDatalayerWithFilters
     public function __construct(
         private readonly OrmBuilder $ormBuilder,
         private readonly DomainToStorageConverter $domainToStorageConverter,
-        private readonly EntityReindexer $entityReindexer,
+        private readonly IndexStrategyInterface $entityReindexer,
         private readonly DoctrineListFactory $doctrineListFactory
     ) {
     }
