@@ -67,7 +67,7 @@ class OrmBuilder
     }
     public function getGeneratedNamespace(): string
     {
-        return 'Generated\\ApieEntities\\';
+        return 'Generated\\ApieEntities' . $this->ormBuilder->getLastGeneratedCode($this->path)->getId() . '\\';
     }
 
     protected function runMigrations(EntityManagerInterface $entityManager, bool $firstCall = true): void
@@ -132,12 +132,15 @@ class OrmBuilder
 
     public function createEntityManager(): EntityManagerInterface
     {
+        $path = $this->path . '/current';
         if (!$this->buildOnce || $this->isEmptyPath()) {
             $this->ormBuilder->createOrm($this->path);
             $this->buildOnce = true;
+            $path = $this->path . '/build' . $this->ormBuilder->getLastGeneratedCode($this->path)->getId();
         }
+
         $config = ORMSetup::createAttributeMetadataConfiguration(
-            [$this->path],
+            [$path],
             $this->devMode,
             $this->proxyDir,
             $this->devMode ? null : $this->cache
