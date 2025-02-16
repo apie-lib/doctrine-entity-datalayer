@@ -32,6 +32,8 @@ class DoctrineEntityDatalayer implements ApieDatalayerWithFilters
 {
     private ?EntityManagerInterface $entityManager = null;
 
+    private bool $logged = false;
+
     public function __construct(
         private readonly OrmBuilder $ormBuilder,
         private readonly DomainToStorageConverter $domainToStorageConverter,
@@ -44,14 +46,35 @@ class DoctrineEntityDatalayer implements ApieDatalayerWithFilters
     {
         if (!isset($this->entityManager) || !$this->entityManager->isOpen()) {
             $this->entityManager = $this->ormBuilder->createEntityManager();
+            $log = $this->ormBuilder->getLogEntity();
+            if ($log) {
+                $this->upsert($log, new BoundedContextId('core'));
+            }
         }
 
         return $this->entityManager;
     }
 
+    /**
+     * @param ReflectionClass<EntityInterface> $class
+     * @return ReflectionClass<StorageDtoInterface>
+     */
+    public function toDoctrineClass(ReflectionClass $class, ?BoundedContextId $boundedContextId = null): ReflectionClass
+    {
+        $doctrineEntityClass = $this->ormBuilder->toDoctrineClass($class, $boundedContextId);
+        if (!$this->logged) {
+            $log = $this->ormBuilder->getLogEntity();
+            if ($log) {
+                $this->upsert($log, new BoundedContextId('core'));
+            }
+            $this->logged = true;
+        }
+        return $doctrineEntityClass;
+    }
+
     public function getOrderByColumns(ReflectionClass $class, BoundedContextId $boundedContextId): ?StringSet
     {
-        $doctrineEntityClass = $this->ormBuilder->toDoctrineClass($class);
+        $doctrineEntityClass = $this->toDoctrineClass($class, $boundedContextId);
         $list = [];
         if (in_array(RequiresRecalculatingInterface::class, $class->getInterfaceNames())) {
             $list[] = 'dateToRecalculate';
@@ -90,7 +113,7 @@ class DoctrineEntityDatalayer implements ApieDatalayerWithFilters
     {
         return $this->doctrineListFactory->createFor(
             $class,
-            $this->ormBuilder->toDoctrineClass($class, $boundedContextId),
+            $this->toDoctrineClass($class, $boundedContextId),
             $boundedContextId ?? new BoundedContextId('unknown')
         );
     }
@@ -99,7 +122,7 @@ class DoctrineEntityDatalayer implements ApieDatalayerWithFilters
     {
         $entityManager = $this->getEntityManager();
         $domainClass = $identifier->getReferenceFor();
-        $doctrineEntityClass = $this->ormBuilder->toDoctrineClass($domainClass, $boundedContextId)->name;
+        $doctrineEntityClass = $this->toDoctrineClass($domainClass, $boundedContextId)->name;
         $doctrineEntity = $entityManager->find($doctrineEntityClass, $identifier->toNative());
         if (!($doctrineEntity instanceof StorageDtoInterface)) {
             throw new EntityNotFoundException($identifier);
@@ -115,7 +138,7 @@ class DoctrineEntityDatalayer implements ApieDatalayerWithFilters
         $identifier = $entity->getId();
         $domainClass = $identifier->getReferenceFor();
         /** @var class-string<StorageDtoInterface> $doctrineEntityClass */
-        $doctrineEntityClass = $this->ormBuilder->toDoctrineClass($domainClass, $boundedContextId)->name;
+        $doctrineEntityClass = $this->toDoctrineClass($domainClass, $boundedContextId)->name;
         $doctrineEntity = $this->domainToStorageConverter->createStorageObject(
             $entity,
             new ReflectionClass($doctrineEntityClass)
@@ -144,7 +167,7 @@ class DoctrineEntityDatalayer implements ApieDatalayerWithFilters
         $entityManager = $this->getEntityManager();
         $identifier = $entity->getId();
         $domainClass = $identifier->getReferenceFor();
-        $doctrineEntityClass = $this->ormBuilder->toDoctrineClass($domainClass, $boundedContextId)->name;
+        $doctrineEntityClass = $this->toDoctrineClass($domainClass, $boundedContextId)->name;
         /** @var (StorageDtoInterface&RootObjectInterface)|null $doctrineEntity */
         $doctrineEntity = $entityManager->find($doctrineEntityClass, $identifier->toNative());
         if (!$doctrineEntity) {
@@ -168,7 +191,7 @@ class DoctrineEntityDatalayer implements ApieDatalayerWithFilters
         $entityManager = $this->getEntityManager();
         $identifier = $entity->getId();
         $domainClass = $identifier->getReferenceFor();
-        $doctrineEntityClass = $this->ormBuilder->toDoctrineClass($domainClass, $boundedContextId)->name;
+        $doctrineEntityClass = $this->toDoctrineClass($domainClass, $boundedContextId)->name;
         /** @var (StorageDtoInterface&RootObjectInterface)|null $doctrineEntity */
         $doctrineEntity = $entityManager->find($doctrineEntityClass, $identifier->toNative());
         if (!$doctrineEntity) {
@@ -183,7 +206,7 @@ class DoctrineEntityDatalayer implements ApieDatalayerWithFilters
         $entityManager = $this->getEntityManager();
         $identifier = $entity->getId();
         $domainClass = $identifier->getReferenceFor();
-        $doctrineEntityClass = $this->ormBuilder->toDoctrineClass($domainClass, $boundedContextId);
+        $doctrineEntityClass = $this->toDoctrineClass($domainClass, $boundedContextId);
         /** @var (StorageDtoInterface&RootObjectInterface)|null $doctrineEntity */
         $doctrineEntity = $entityManager->find($doctrineEntityClass->name, $identifier->toNative());
         if ($doctrineEntity) {

@@ -29,6 +29,8 @@ use RuntimeException;
 class OrmBuilder
 {
     private ?EntityManagerInterface $createdEntityManager = null;
+
+    private bool $isModified = false;
     /**
      * @var array<string, mixed> $connectionConfig
      */
@@ -70,15 +72,36 @@ class OrmBuilder
         return 'Generated\\ApieEntities' . $this->ormBuilder->getLastGeneratedCode($this->path)->getId() . '\\';
     }
 
+    public function getLogEntity(): ?EntityInterface
+    {
+        if ($this->isModified) {
+            return $this->ormBuilder->getLastGeneratedCode($this->path);
+        }
+        return null;
+    }
+
     protected function runMigrations(EntityManagerInterface $entityManager, bool $firstCall = true): void
     {
         $tool = new SchemaTool($entityManager);
         $classes = $entityManager->getMetadataFactory()->getAllMetadata();
-        
+        $statementCounts = [];
         try {
             $sql = $tool->getUpdateSchemaSql($classes);
-            foreach ($sql as $statement) {
-                $entityManager->getConnection()->executeStatement($statement);
+            // for some reason the order is not the order we should execute them.....
+            while (!empty($sql)) {
+                try {
+                    do {
+                        $statement = array_shift($sql);
+                        $entityManager->getConnection()->executeStatement($statement);
+                    } while (!empty($sql));
+                } catch (DriverException $driverException) {
+                    $statementCounts[$statement] ??= 0;
+                    $statementCounts[$statement]++;
+                    if ($statementCounts[$statement] > 5) {
+                        throw $driverException;
+                    }
+                    array_push($sql, $statement);
+                }
             }
         } catch (DriverException $driverException) {
             if ($firstCall) {
@@ -133,8 +156,9 @@ class OrmBuilder
     public function createEntityManager(): EntityManagerInterface
     {
         $path = $this->path . '/current';
+        $this->isModified = false;
         if (!$this->buildOnce || $this->isEmptyPath()) {
-            $this->ormBuilder->createOrm($this->path);
+            $this->isModified = $this->ormBuilder->createOrm($this->path);
             $this->buildOnce = true;
             $path = $this->path . '/build' . $this->ormBuilder->getLastGeneratedCode($this->path)->getId();
         }
