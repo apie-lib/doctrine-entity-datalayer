@@ -155,13 +155,12 @@ class OrmBuilder
 
     public function createEntityManager(): EntityManagerInterface
     {
-        $path = $this->path . '/current';
         $this->isModified = false;
         if (!$this->buildOnce || $this->isEmptyPath()) {
             $this->isModified = $this->ormBuilder->createOrm($this->path);
             $this->buildOnce = true;
-            $path = $this->path . '/build' . $this->ormBuilder->getLastGeneratedCode($this->path)->getId();
         }
+        $path = $this->path . '/build' . $this->ormBuilder->getLastGeneratedCode($this->path)->getId();
 
         $config = ORMSetup::createAttributeMetadataConfiguration(
             [$path],
