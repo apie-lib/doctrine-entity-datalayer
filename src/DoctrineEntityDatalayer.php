@@ -14,6 +14,7 @@ use Apie\Core\Lists\StringSet;
 use Apie\Core\Metadata\MetadataFactory;
 use Apie\DoctrineEntityDatalayer\Exceptions\InsertConflict;
 use Apie\DoctrineEntityDatalayer\Factories\DoctrineListFactory;
+use Apie\DoctrineEntityDatalayer\Factories\EntityQueryFilterFactory;
 use Apie\DoctrineEntityDatalayer\IndexStrategy\IndexStrategyInterface;
 use Apie\StorageMetadata\Attributes\GetSearchIndexAttribute;
 use Apie\StorageMetadata\Attributes\PropertyAttribute;
@@ -72,6 +73,9 @@ class DoctrineEntityDatalayer implements ApieDatalayerWithFilters
         return $doctrineEntityClass;
     }
 
+    /**
+     * @see EntityQueryFilterFactory
+     */
     public function getOrderByColumns(ReflectionClass $class, BoundedContextId $boundedContextId): ?StringSet
     {
         $doctrineEntityClass = $this->toDoctrineClass($class, $boundedContextId);
@@ -79,6 +83,8 @@ class DoctrineEntityDatalayer implements ApieDatalayerWithFilters
         if (in_array(RequiresRecalculatingInterface::class, $class->getInterfaceNames())) {
             $list[] = 'dateToRecalculate';
         }
+        $list[] = 'createdAt';
+        $list[] = 'updatedAt';
         foreach ($doctrineEntityClass->getProperties(ReflectionProperty::IS_PUBLIC) as $publicProperty) {
             foreach ($publicProperty->getAttributes(PropertyAttribute::class) as $publicPropertyAttribute) {
                 $metadata = MetadataFactory::getModificationMetadata(

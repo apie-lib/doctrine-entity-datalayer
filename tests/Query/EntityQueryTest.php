@@ -7,7 +7,7 @@ use Apie\DoctrineEntityDatalayer\Query\EntityQuery;
 use Apie\DoctrineEntityDatalayer\Query\FieldTextSearchFilter;
 use Apie\DoctrineEntityDatalayer\Query\FulltextSearchFilter;
 use Apie\DoctrineEntityDatalayer\Query\OrderBySearchFilter;
-use Apie\DoctrineEntityDatalayer\Query\SearchByRequireUpdateFilter;
+use Apie\DoctrineEntityDatalayer\Query\SearchByInternalColumnFilter;
 use Apie\Fixtures\Entities\Order;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Platforms\SqlitePlatform;
@@ -43,12 +43,12 @@ class EntityQueryTest extends TestCase
             new ReflectionClass(Order::class),
             new BoundedContextId('test'),
             $querySearch,
-            new FulltextSearchFilter(new ReflectionClass(Order::class), new BoundedContextId('test')),
             new FieldTextSearchFilter('name', 'apie_name'),
             new FieldTextSearchFilter('value', 'apie_value'),
             new OrderBySearchFilter('name', 'apie_name'),
             new OrderBySearchFilter('value', 'apie_value'),
-            new SearchByRequireUpdateFilter()
+            new SearchByInternalColumnFilter('dateToRecalculate', 'requires_update'),
+            new FulltextSearchFilter(new ReflectionClass(Order::class), new BoundedContextId('test')),
         );
         $actual = str_replace("\r", '', $testItem->__toString());
         // file_put_contents($expectedOutputPath, $actual);
