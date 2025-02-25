@@ -5,6 +5,7 @@ use Apie\Core\Context\ApieContext;
 use Apie\Core\Entities\EntityInterface;
 use Apie\Core\Indexing\Indexer;
 use Apie\StorageMetadataBuilder\Interfaces\HasIndexInterface;
+use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Platforms\SqlitePlatform;
 use ReflectionClass;
 
@@ -15,12 +16,12 @@ final class EntityReindexer
     }
 
     /**
-     * @return class-string<HasIndexInterface>
+     * @param ReflectionClass<HasIndexInterface> $doctrineEntity
+     * @return class-string<object>
      */
-    private function getIndexClass(HasIndexInterface $doctrineEntity): string
+    private function getIndexClass(ReflectionClass $doctrineEntity): string
     {
-        $refl = new ReflectionClass($doctrineEntity);
-        return $refl->getMethod('getIndexTable')->invoke($doctrineEntity)->name;
+        return $doctrineEntity->getMethod('getIndexTable')->invoke(null)->name;
     }
 
     /**
@@ -50,16 +51,23 @@ final class EntityReindexer
     }
 
     /**
-     * @param array<int, string> $termsToUpdate
+     * @param ReflectionClass<HasIndexInterface> $doctrineEntity
      */
-    private function recalculateIdf(HasIndexInterface $doctrineEntity, array $termsToUpdate): void
+    public function recalculateIdfForAll(ReflectionClass $doctrineEntity): void
     {
-        if (empty($termsToUpdate)) {
-            return;
-        }
+        $query = $this->createUpdateQuery($doctrineEntity);
+        $entityManager = $this->ormBuilder->createEntityManager();
+        $entityManager->getConnection()->executeQuery($query);
+    }
+
+    /**
+     * @param ReflectionClass<HasIndexInterface> $doctrineEntity
+     */
+    private function createUpdateQuery(ReflectionClass $doctrineEntity): string
+    {
         $entityManager = $this->ormBuilder->createEntityManager();
         $tableName = (new ReflectionClass($this->getIndexClass($doctrineEntity)))->getShortName();
-        $columnName = 'ref_' . (new ReflectionClass($doctrineEntity))->getShortName() . '_id';
+        $columnName = 'ref_' . $doctrineEntity->getShortName() . '_id';
         $totalDocumentQuery = sprintf(
             '(SELECT total_documents FROM (SELECT COUNT(DISTINCT %s) AS total_documents FROM %s WHERE %s IS NOT NULL) AS sub1)',
             $columnName,
@@ -75,7 +83,7 @@ final class EntityReindexer
         $connection = $entityManager->getConnection();
         $query = sprintf(
             'UPDATE %s AS t
-            SET idf = COALESCE(%s((%s)/(%s = t.text LIMIT 1)), 0)
+            SET idf = COALESCE(%s((%s)/(%s = t.text LIMIT 1)), 1)
             WHERE %s IS NOT NULL AND EXISTS (SELECT 1 FROM (SELECT text, COUNT(DISTINCT %s) AS documents_with_term FROM %s GROUP BY text) AS sub WHERE sub.text = t.text LIMIT 1);',
             $tableName,
             // @phpstan-ignore class.notFound
@@ -86,6 +94,25 @@ final class EntityReindexer
             $columnName,
             $tableName
         );
-        $connection->executeQuery($query);
+
+        return $query;
+    }
+
+    /**
+     * @param array<int, string> $termsToUpdate
+     */
+    private function recalculateIdf(HasIndexInterface $doctrineEntity, array $termsToUpdate): void
+    {
+        if (empty($termsToUpdate)) {
+            return;
+        }
+        $query = $this->createUpdateQuery(new ReflectionClass($doctrineEntity));
+        $query = preg_replace('#LIMIT 1\);$#', 'AND t.text IN (:terms) LIMIT 1);', $query);
+        $entityManager = $this->ormBuilder->createEntityManager();
+        $entityManager->getConnection()->executeQuery(
+            $query,
+            ['terms' => array_values($termsToUpdate)],
+            ['terms' => ArrayParameterType::STRING]
+        );
     }
 }

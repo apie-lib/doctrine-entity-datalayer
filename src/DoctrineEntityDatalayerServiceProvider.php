@@ -51,8 +51,6 @@ class DoctrineEntityDatalayerServiceProvider extends ServiceProvider
                 
             }
         );
-        $this->app->bind(\Apie\DoctrineEntityDatalayer\IndexStrategy\IndexStrategyInterface::class, \Apie\DoctrineEntityDatalayer\IndexStrategy\DirectIndexStrategy::class);
-        
         $this->app->singleton(
             \Apie\DoctrineEntityDatalayer\IndexStrategy\DirectIndexStrategy::class,
             function ($app) {

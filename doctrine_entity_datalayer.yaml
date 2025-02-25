@@ -19,9 +19,6 @@ services:
       - '@Apie\Core\FileStorage\ChainedFileStorage'
       - '@Apie\Core\Indexing\Indexer'
 
-  Apie\DoctrineEntityDatalayer\IndexStrategy\IndexStrategyInterface:
-    alias: Apie\DoctrineEntityDatalayer\IndexStrategy\DirectIndexStrategy
-
   Apie\DoctrineEntityDatalayer\IndexStrategy\DirectIndexStrategy:
     arguments:
       - '@Apie\DoctrineEntityDatalayer\EntityReindexer'

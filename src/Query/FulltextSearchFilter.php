@@ -26,9 +26,13 @@ final class FulltextSearchFilter implements TextSearchFilterInterface, AddsJoinF
         $textSearch = $querySearch->getTextSearch();
         assert(null !== $textSearch);
         $words = array_keys(WordCounter::countFromString($textSearch));
+        $lastWord = end($words);
         $whereStatement = array_map(
-            function (string $word) use ($connection) {
-                return 'text LIKE ' . $connection->quote(LikeUtils::toLikeString($word));
+            function (string $word) use ($connection, $lastWord) {
+                if ($word === $lastWord) {
+                    return 'text LIKE ' . $connection->quote(LikeUtils::toLikeString($word));
+                }
+                return 'text = ' . $connection->quote($word);
             },
             $words
         );
