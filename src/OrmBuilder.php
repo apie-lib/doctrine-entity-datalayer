@@ -174,6 +174,10 @@ class OrmBuilder
             if ($assetName instanceof AbstractAsset) {
                 $assetName = $assetName->getName();
             }
+
+            if ($assetName === 'doctrine_migration_versions') {
+                return true;
+            }
         
             return (bool) preg_match("~^apie_~i", $assetName);
         });
