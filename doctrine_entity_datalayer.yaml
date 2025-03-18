@@ -1,14 +1,49 @@
 services:
+  Apie\DoctrineEntityDatalayer\EntityReindexer:
+    arguments:
+      - '@Apie\DoctrineEntityDatalayer\OrmBuilder'
+      - '@Apie\Core\Indexing\Indexer'
+
+  Apie\DoctrineEntityDatalayer\Factories\DoctrineListFactory:
+    arguments:
+      - '@Apie\DoctrineEntityDatalayer\OrmBuilder'
+      - '@Apie\DoctrineEntityDatalayer\Factories\EntityQueryFilterFactory'
+      - '@Apie\StorageMetadata\DomainToStorageConverter'
+
+  Apie\DoctrineEntityDatalayer\Factories\EntityQueryFilterFactory:
+
+# TODO move to own yaml file.
+  Apie\StorageMetadata\DomainToStorageConverter:
+    factory: ['Apie\StorageMetadata\DomainToStorageConverter', 'create']
+    arguments:
+      - '@Apie\Core\FileStorage\ChainedFileStorage'
+      - '@Apie\Core\Indexing\Indexer'
+
+  Apie\DoctrineEntityDatalayer\IndexStrategy\DirectIndexStrategy:
+    arguments:
+      - '@Apie\DoctrineEntityDatalayer\EntityReindexer'
+  Apie\DoctrineEntityDatalayer\IndexStrategy\IndexAfterResponseIsSentStrategy:
+    arguments:
+      - '@Apie\DoctrineEntityDatalayer\EntityReindexer'
+    tags: ['kernel.event_subscriber']
+
   Apie\DoctrineEntityDatalayer\DoctrineEntityDatalayer:
     arguments:
       - '@Apie\DoctrineEntityDatalayer\OrmBuilder'
+      - '@Apie\StorageMetadata\DomainToStorageConverter'
+      - '@Apie\DoctrineEntityDatalayer\IndexStrategy\IndexStrategyInterface'
+      - '@Apie\DoctrineEntityDatalayer\Factories\DoctrineListFactory'
+    tags:
+      - apie.datalayer
   Apie\DoctrineEntityDatalayer\OrmBuilder:
+    public: true
     arguments:
       - '@Apie\DoctrineEntityConverter\OrmBuilder'
       - '%apie.doctrine.build_once%'
       - '%apie.doctrine.run_migrations%'
       - '%kernel.debug%'
       - '%kernel.cache_dir%/apie_proxies'
-      - '%kernel.cache_dir%/apie_datalayer'
+      - '@?Psr\Cache\CacheItemPoolInterface'
       - '%kernel.cache_dir%/apie_entities'
-      - '%apie.doctrine.connection_config%'
+      - '%apie.doctrine.connection_params%'
+      - '@?doctrine.dbal.debug_middleware.default'
