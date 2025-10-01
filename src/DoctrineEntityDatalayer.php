@@ -26,6 +26,7 @@ use Apie\TypeConverter\ReflectionTypeFactory;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Exception\EntityIdentityCollisionException;
+use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionProperty;
 
@@ -86,7 +87,7 @@ class DoctrineEntityDatalayer implements ApieDatalayerWithFilters
         $list[] = 'createdAt';
         $list[] = 'updatedAt';
         foreach ($doctrineEntityClass->getProperties(ReflectionProperty::IS_PUBLIC) as $publicProperty) {
-            foreach ($publicProperty->getAttributes(PropertyAttribute::class) as $publicPropertyAttribute) {
+            foreach ($publicProperty->getAttributes(PropertyAttribute::class, ReflectionAttribute::IS_INSTANCEOF) as $publicPropertyAttribute) {
                 $metadata = MetadataFactory::getModificationMetadata(
                     $publicProperty->getType() ?? ReflectionTypeFactory::createReflectionType('mixed'),
                     new ApieContext()

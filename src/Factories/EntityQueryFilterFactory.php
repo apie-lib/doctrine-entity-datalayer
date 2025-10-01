@@ -20,6 +20,7 @@ use Apie\StorageMetadata\Attributes\GetSearchIndexAttribute;
 use Apie\StorageMetadata\Attributes\PropertyAttribute;
 use Apie\StorageMetadata\Interfaces\StorageDtoInterface;
 use Apie\TypeConverter\ReflectionTypeFactory;
+use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionProperty;
 
@@ -71,7 +72,7 @@ final class EntityQueryFilterFactory
                     new ApieContext()
                 );
                 if (in_array($metadata->toScalarType(true), ScalarType::PRIMITIVES)) {
-                    foreach ($publicProperty->getAttributes(PropertyAttribute::class) as $publicPropertyAttribute) {
+                    foreach ($publicProperty->getAttributes(PropertyAttribute::class, ReflectionAttribute::IS_INSTANCEOF) as $publicPropertyAttribute) {
                         $filters[] = new OrderBySearchFilter(
                             $publicPropertyAttribute->newInstance()->propertyName,
                             $publicProperty->getName()
