@@ -30,7 +30,8 @@
     "apie/core": "self.version",
     "apie/doctrine-entity-converter": "self.version",
     "doctrine/common": "^3.4.4",
-    "doctrine/orm": "^3.3.1"
+    "doctrine/orm": "^3.3.1",
+    "symfony/var-exporter": "^7.2"
   },
   "require-dev": {
     "apie/fixtures": "self.version",
