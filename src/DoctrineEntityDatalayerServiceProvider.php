@@ -14,7 +14,7 @@ class DoctrineEntityDatalayerServiceProvider extends ServiceProvider
 
     public function register()
     {
-        $this->app->singleton(
+        $this->registerSingleton(
             \Apie\DoctrineEntityDatalayer\EntityReindexer::class,
             function ($app) {
                 return new \Apie\DoctrineEntityDatalayer\EntityReindexer(
@@ -23,7 +23,7 @@ class DoctrineEntityDatalayerServiceProvider extends ServiceProvider
                 );
             }
         );
-        $this->app->singleton(
+        $this->registerSingleton(
             \Apie\DoctrineEntityDatalayer\Factories\DoctrineListFactory::class,
             function ($app) {
                 return new \Apie\DoctrineEntityDatalayer\Factories\DoctrineListFactory(
@@ -33,7 +33,7 @@ class DoctrineEntityDatalayerServiceProvider extends ServiceProvider
                 );
             }
         );
-        $this->app->singleton(
+        $this->registerSingleton(
             \Apie\DoctrineEntityDatalayer\Factories\EntityQueryFilterFactory::class,
             function ($app) {
                 return new \Apie\DoctrineEntityDatalayer\Factories\EntityQueryFilterFactory(
@@ -41,7 +41,7 @@ class DoctrineEntityDatalayerServiceProvider extends ServiceProvider
                 );
             }
         );
-        $this->app->singleton(
+        $this->registerSingleton(
             \Apie\StorageMetadata\DomainToStorageConverter::class,
             function ($app) {
                 return \Apie\StorageMetadata\DomainToStorageConverter::create(
@@ -51,7 +51,7 @@ class DoctrineEntityDatalayerServiceProvider extends ServiceProvider
                 
             }
         );
-        $this->app->singleton(
+        $this->registerSingleton(
             \Apie\DoctrineEntityDatalayer\IndexStrategy\DirectIndexStrategy::class,
             function ($app) {
                 return new \Apie\DoctrineEntityDatalayer\IndexStrategy\DirectIndexStrategy(
@@ -59,7 +59,7 @@ class DoctrineEntityDatalayerServiceProvider extends ServiceProvider
                 );
             }
         );
-        $this->app->singleton(
+        $this->registerSingleton(
             \Apie\DoctrineEntityDatalayer\IndexStrategy\IndexAfterResponseIsSentStrategy::class,
             function ($app) {
                 return new \Apie\DoctrineEntityDatalayer\IndexStrategy\IndexAfterResponseIsSentStrategy(
@@ -75,7 +75,7 @@ class DoctrineEntityDatalayerServiceProvider extends ServiceProvider
             )
         );
         $this->app->tag([\Apie\DoctrineEntityDatalayer\IndexStrategy\IndexAfterResponseIsSentStrategy::class], 'kernel.event_subscriber');
-        $this->app->singleton(
+        $this->registerSingleton(
             \Apie\DoctrineEntityDatalayer\DoctrineEntityDatalayer::class,
             function ($app) {
                 return new \Apie\DoctrineEntityDatalayer\DoctrineEntityDatalayer(
@@ -110,6 +110,14 @@ class DoctrineEntityDatalayerServiceProvider extends ServiceProvider
                 );
             }
         );
+        \Apie\ServiceProviderGenerator\TagMap::register(
+            $this->app,
+            \Apie\DoctrineEntityDatalayer\OrmBuilder::class,
+            array(
+              0 => 'always-singleton',
+            )
+        );
+        $this->app->tag([\Apie\DoctrineEntityDatalayer\OrmBuilder::class], 'always-singleton');
         
     }
 }

@@ -47,3 +47,5 @@ services:
       - '%kernel.cache_dir%/apie_entities'
       - '%apie.doctrine.connection_params%'
       - '@?doctrine.dbal.debug_middleware.default'
+    tags:
+      - always-singleton
