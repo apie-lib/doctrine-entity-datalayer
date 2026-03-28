@@ -1,6 +1,7 @@
 <?php
 namespace Apie\DoctrineEntityDatalayer;
 
+use Apie\Core\Attributes\OverwriteAfterPersist;
 use Apie\Core\BoundedContext\BoundedContextId;
 use Apie\Core\Context\ApieContext;
 use Apie\Core\Datalayers\ApieDatalayerWithFilters;
@@ -12,6 +13,7 @@ use Apie\Core\Exceptions\EntityNotFoundException;
 use Apie\Core\Identifiers\IdentifierInterface;
 use Apie\Core\Lists\StringSet;
 use Apie\Core\Metadata\MetadataFactory;
+use Apie\Core\TypeUtils;
 use Apie\DoctrineEntityDatalayer\Exceptions\InsertConflict;
 use Apie\DoctrineEntityDatalayer\Factories\DoctrineListFactory;
 use Apie\DoctrineEntityDatalayer\Factories\EntityQueryFilterFactory;
@@ -157,11 +159,12 @@ class DoctrineEntityDatalayer implements ApieDatalayerWithFilters
         } catch (UniqueConstraintViolationException|EntityIdentityCollisionException $uniqueConstraintViolation) {
             throw new InsertConflict($uniqueConstraintViolation);
         }
-        // TODO: only do for entities with Auto-increment id's
-        $this->domainToStorageConverter->injectExistingDomainObject(
-            $entity,
-            $doctrineEntity
-        );
+        if (TypeUtils::findAttributes(new ReflectionClass($entity), OverwriteAfterPersist::class)) {
+            $this->domainToStorageConverter->injectExistingDomainObject(
+                $entity,
+                $doctrineEntity
+            );
+        }
         if ($doctrineEntity instanceof HasIndexInterface) {
             $this->entityReindexer->updateIndex($doctrineEntity, $entity);
         }
@@ -186,7 +189,12 @@ class DoctrineEntityDatalayer implements ApieDatalayerWithFilters
         );
         $entityManager->persist($doctrineEntity);
         $entityManager->flush();
-
+        if (TypeUtils::findAttributes(new ReflectionClass($entity), OverwriteAfterPersist::class)) {
+            $this->domainToStorageConverter->injectExistingDomainObject(
+                $entity,
+                $doctrineEntity
+            );
+        }
         if ($doctrineEntity instanceof HasIndexInterface) {
             $this->entityReindexer->updateIndex($doctrineEntity, $entity);
         }
@@ -229,7 +237,12 @@ class DoctrineEntityDatalayer implements ApieDatalayerWithFilters
         }
         $entityManager->persist($doctrineEntity);
         $entityManager->flush();
-
+        if (TypeUtils::findAttributes(new ReflectionClass($entity), OverwriteAfterPersist::class)) {
+            $this->domainToStorageConverter->injectExistingDomainObject(
+                $entity,
+                $doctrineEntity
+            );
+        }
         if ($doctrineEntity instanceof HasIndexInterface) {
             $this->entityReindexer->updateIndex($doctrineEntity, $entity);
         }
