@@ -2,6 +2,7 @@
 
 namespace Apie\DoctrineEntityDatalayer\Factories;
 
+use Apie\Core\Attributes\ClassStoreOptions;
 use Apie\Core\BoundedContext\BoundedContextId;
 use Apie\Core\Context\ApieContext;
 use Apie\Core\Entities\RequiresRecalculatingInterface;
@@ -9,6 +10,7 @@ use Apie\Core\Enums\ScalarType;
 use Apie\Core\Metadata\MetadataFactory;
 use Apie\Core\Permissions\RequiresPermissionsInterface;
 use Apie\DoctrineEntityDatalayer\DoctrineEntityDatalayer;
+use Apie\DoctrineEntityDatalayer\Query\DefaultOptionFilter;
 use Apie\DoctrineEntityDatalayer\Query\EntityQueryFilterInterface;
 use Apie\DoctrineEntityDatalayer\Query\FieldTextSearchFilter;
 use Apie\DoctrineEntityDatalayer\Query\FulltextSearchFilter;
@@ -85,6 +87,10 @@ final class EntityQueryFilterFactory
             $domainClass,
             $boundedContextId
         );
+        foreach ($domainClass->getAttributes(ClassStoreOptions::class) as $classStoreOptionsAttribute) {
+            $classStoreOptions = $classStoreOptionsAttribute->newInstance();
+            $filters[] = new DefaultOptionFilter($classStoreOptions);
+        }
 
         if (in_array(RequiresPermissionsInterface::class, $domainClass->getInterfaceNames())) {
             $filters[] = new RequiresPermissionFilter($domainClass, $boundedContextId);

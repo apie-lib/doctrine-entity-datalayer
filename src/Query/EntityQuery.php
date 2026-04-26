@@ -129,7 +129,7 @@ ORDER BY %s",
             )
         );
         
-        return empty($query) ? 'entity.created_at DESC' : $query;
+        return empty($query) ? 'entity.created_at DESC, entity.id DESC' : $query;
     }
 
     private function generateOffset(): string
