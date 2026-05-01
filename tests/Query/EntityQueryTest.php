@@ -1,14 +1,19 @@
 <?php
 namespace Apie\Tests\DoctrineEntityDatalayer\Query;
 
+use Apie\Core\Attributes\ClassStoreOptions;
 use Apie\Core\BoundedContext\BoundedContextId;
 use Apie\Core\Datalayers\Search\QuerySearch;
+use Apie\Core\Enums\SortingOrder as EnumsSortingOrder;
+use Apie\DoctrineEntityDatalayer\Query\DefaultOptionFilter;
 use Apie\DoctrineEntityDatalayer\Query\EntityQuery;
 use Apie\DoctrineEntityDatalayer\Query\FieldTextSearchFilter;
 use Apie\DoctrineEntityDatalayer\Query\FulltextSearchFilter;
 use Apie\DoctrineEntityDatalayer\Query\OrderBySearchFilter;
+use Apie\DoctrineEntityDatalayer\Query\RequiresPermissionFilter;
 use Apie\DoctrineEntityDatalayer\Query\SearchByInternalColumnFilter;
 use Apie\Fixtures\Entities\Order;
+use Apie\IntegrationTests\Apie\TypeDemo\Resources\RestrictedEntity;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Platforms\SqlitePlatform;
 use Doctrine\ORM\EntityManagerInterface;
@@ -59,6 +64,38 @@ class EntityQueryTest extends TestCase
     public static function sqlProvider(): Generator
     {
         foreach (Finder::create()->in(__DIR__ . '/../../fixtures/entity-query')->files()->name('*.json') as $inputFile) {
+            $input = (array) json_decode(file_get_contents($inputFile), true);
+            $querySearch = QuerySearch::fromArray($input);
+            yield $inputFile->getBasename('.json') => [str_replace('.json', '.sql', (string) $inputFile), $querySearch];
+        }
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('restrictedSqlProvider')]
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_can_create_sql_with_text_search_on_restricted_entity(string $expectedOutputPath, QuerySearch $querySearch): void
+    {
+        $testItem = new EntityQuery(
+            $this->createFakeManager(),
+            new ReflectionClass(Order::class),
+            new BoundedContextId('test'),
+            $querySearch,
+            new FieldTextSearchFilter('id', 'apie_id'),
+            new FieldTextSearchFilter('userId', 'apie_user_id'),
+            new OrderBySearchFilter('id', 'apie_id'),
+            new OrderBySearchFilter('userId', 'apie_user_id'),
+            new FulltextSearchFilter(new ReflectionClass(Order::class), new BoundedContextId('test')),
+            new DefaultOptionFilter(new ClassStoreOptions(defaultSortingOrder: EnumsSortingOrder::Ascending)),
+            new RequiresPermissionFilter(new ReflectionClass(Order::class), new BoundedContextId('test')),
+        );
+        $actual = str_replace("\r", '', $testItem->__toString());
+        // file_put_contents($expectedOutputPath, $actual);
+        $expected = str_replace("\r", '', file_get_contents($expectedOutputPath));
+        $this->assertEquals($expected, $actual);
+    }
+
+    public static function restrictedSqlProvider(): Generator
+    {
+        foreach (Finder::create()->in(__DIR__ . '/../../fixtures/entity-query-restricted')->files()->name('*.json') as $inputFile) {
             $input = (array) json_decode(file_get_contents($inputFile), true);
             $querySearch = QuerySearch::fromArray($input);
             yield $inputFile->getBasename('.json') => [str_replace('.json', '.sql', (string) $inputFile), $querySearch];

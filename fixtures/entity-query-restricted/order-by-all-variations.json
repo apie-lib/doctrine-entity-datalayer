@@ -1,0 +1,8 @@
+{
+    "search": "I searched this",
+    "query": {
+        "name": "Exact match",
+        "ignored": "12"
+    },
+    "order_by": "+name,-value,ignored,dateToRecalculate"
+}
