@@ -13,7 +13,6 @@ use Apie\DoctrineEntityDatalayer\Query\OrderBySearchFilter;
 use Apie\DoctrineEntityDatalayer\Query\RequiresPermissionFilter;
 use Apie\DoctrineEntityDatalayer\Query\SearchByInternalColumnFilter;
 use Apie\Fixtures\Entities\Order;
-use Apie\IntegrationTests\Apie\TypeDemo\Resources\RestrictedEntity;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Platforms\SqlitePlatform;
 use Doctrine\ORM\EntityManagerInterface;
