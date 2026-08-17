@@ -21,7 +21,7 @@ final class EntityQueryFactory
      */
     private array $filters;
     /**
-     * @param ReflectionClass<object> $doctrineEntityClass
+     * @param ReflectionClass<covariant object> $doctrineEntityClass
      */
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
@@ -42,7 +42,7 @@ final class EntityQueryFactory
     }
 
     /**
-     * @return ReflectionClass<object>
+     * @return ReflectionClass<covariant object>
      */
     public function getDoctrineClass(): ReflectionClass
     {

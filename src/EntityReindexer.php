@@ -4,6 +4,7 @@ namespace Apie\DoctrineEntityDatalayer;
 use Apie\Core\Context\ApieContext;
 use Apie\Core\Entities\EntityInterface;
 use Apie\Core\Indexing\Indexer;
+use Apie\StorageMetadata\Interfaces\StorageDtoInterface;
 use Apie\StorageMetadataBuilder\Interfaces\HasIndexInterface;
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Platforms\SqlitePlatform;
@@ -16,8 +17,8 @@ final class EntityReindexer
     }
 
     /**
-     * @param ReflectionClass<HasIndexInterface> $doctrineEntity
-     * @return class-string<object>
+     * @param ReflectionClass<covariant HasIndexInterface> $doctrineEntity
+     * @return class-string<covariant StorageDtoInterface>
      */
     private function getIndexClass(ReflectionClass $doctrineEntity): string
     {
@@ -51,7 +52,7 @@ final class EntityReindexer
     }
 
     /**
-     * @param ReflectionClass<HasIndexInterface> $doctrineEntity
+     * @param ReflectionClass<covariant HasIndexInterface> $doctrineEntity
      */
     public function recalculateIdfForAll(ReflectionClass $doctrineEntity): void
     {
@@ -61,7 +62,7 @@ final class EntityReindexer
     }
 
     /**
-     * @param ReflectionClass<HasIndexInterface> $doctrineEntity
+     * @param ReflectionClass<covariant HasIndexInterface> $doctrineEntity
      */
     private function createUpdateQuery(ReflectionClass $doctrineEntity): string
     {

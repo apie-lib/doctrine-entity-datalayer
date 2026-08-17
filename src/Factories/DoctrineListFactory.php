@@ -20,8 +20,8 @@ final class DoctrineListFactory
 
     /**
      * @template T of EntityInterface
-     * @param ReflectionClass<T> $entityClass
-     * @param ReflectionClass<object> $doctrineEntityClass
+     * @param ReflectionClass<covariant T> $entityClass
+     * @param ReflectionClass<covariant object> $doctrineEntityClass
      * @return EntityListInterface<T>
      */
     public function createFor(ReflectionClass $entityClass, ReflectionClass $doctrineEntityClass, BoundedContextId $boundedContextId): EntityListInterface

@@ -117,13 +117,14 @@ class OrmBuilder
     }
 
     /**
-     * @param ReflectionClass<EntityInterface> $class
-     * @return ReflectionClass<StorageDtoInterface>
+     * @param ReflectionClass<covariant EntityInterface> $class
+     * @return ReflectionClass<covariant StorageDtoInterface>
      */
     public function toDoctrineClass(ReflectionClass $class, ?BoundedContextId $boundedContextId = null): ReflectionClass
     {
         $manager = $this->createEntityManager();
         foreach ($manager->getMetadataFactory()->getAllMetadata() as $metadata) {
+            /** @var ReflectionClass<covariant StorageDtoInterface> $refl */
             $refl = new ReflectionClass($metadata->getName());
             if (in_array(RootObjectInterface::class, $refl->getInterfaceNames())) {
                 $originalClass = $refl->getMethod('getClassReference')->invoke(null);

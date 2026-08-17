@@ -60,8 +60,8 @@ class DoctrineEntityDatalayer implements ApieDatalayerWithFilters
     }
 
     /**
-     * @param ReflectionClass<EntityInterface> $class
-     * @return ReflectionClass<StorageDtoInterface>
+     * @param ReflectionClass<covariant EntityInterface> $class
+     * @return ReflectionClass<covariant StorageDtoInterface>
      */
     public function toDoctrineClass(ReflectionClass $class, ?BoundedContextId $boundedContextId = null): ReflectionClass
     {

@@ -29,7 +29,7 @@ use ReflectionProperty;
 final class EntityQueryFilterFactory
 {
     /**
-     * @param ReflectionClass<StorageDtoInterface> $doctrineClass
+     * @param ReflectionClass<covariant StorageDtoInterface> $doctrineClass
      * @return EntityQueryFilterInterface[]
      *
      * @see DoctrineEntityDatalayer::getOrderByColumns()
