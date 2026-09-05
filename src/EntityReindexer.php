@@ -8,6 +8,7 @@ use Apie\StorageMetadata\Interfaces\StorageDtoInterface;
 use Apie\StorageMetadataBuilder\Interfaces\HasIndexInterface;
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Platforms\SqlitePlatform;
+use Doctrine\ORM\Mapping\JoinColumn;
 use ReflectionClass;
 
 final class EntityReindexer
@@ -67,8 +68,20 @@ final class EntityReindexer
     private function createUpdateQuery(ReflectionClass $doctrineEntity): string
     {
         $entityManager = $this->ormBuilder->createEntityManager();
-        $tableName = (new ReflectionClass($this->getIndexClass($doctrineEntity)))->getShortName();
+        $refl = (new ReflectionClass($this->getIndexClass($doctrineEntity)));
+        $tableName = $refl->getShortName();
         $columnName = 'ref_' . $doctrineEntity->getShortName() . '_id';
+
+        // @see LimitFieldLength. The column name is renamed if the name is very long.
+        $reflProperty = $refl->getProperty('ref_' . $doctrineEntity->getShortName());
+        foreach ($reflProperty->getAttributes(JoinColumn::class) as $joinColumn) {
+            $instance = $joinColumn->newInstance();
+            if (isset($instance->name)) {
+                $columnName = $instance->name;
+            }
+        }
+
+
         $totalDocumentQuery = sprintf(
             '(SELECT total_documents FROM (SELECT COUNT(DISTINCT %s) AS total_documents FROM %s WHERE %s IS NOT NULL) AS sub1)',
             $columnName,
