@@ -2,10 +2,12 @@
 namespace Apie\DoctrineEntityDatalayer;
 
 use Apie\Core\BoundedContext\BoundedContextId;
+use Apie\Core\Context\ApieContext;
 use Apie\Core\Entities\EntityInterface;
 use Apie\DoctrineEntityConverter\OrmBuilder as DoctrineEntityConverterOrmBuilder;
 use Apie\DoctrineEntityDatalayer\Exceptions\CouldNotUpdateDatabaseAutomatically;
 use Apie\DoctrineEntityDatalayer\Middleware\RunMigrationsOnConnect;
+use Apie\Serializer\Serializer;
 use Apie\StorageMetadata\Interfaces\StorageDtoInterface;
 use Apie\StorageMetadataBuilder\Interfaces\RootObjectInterface;
 use Doctrine\Bundle\DoctrineBundle\Middleware\DebugMiddleware;
@@ -20,7 +22,10 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\ORMSetup;
 use Doctrine\ORM\Tools\SchemaTool;
+use FFI\CData;
+use FFI\CType;
 use FilesystemIterator;
+use function Opis\Closure\register;
 use Psr\Cache\CacheItemPoolInterface;
 use RecursiveDirectoryIterator;
 use ReflectionClass;
@@ -154,8 +159,31 @@ class OrmBuilder
         return true;
     }
 
+    private function initOpisClosure(): void
+    {
+        static $isRegistered = false;
+        if (!$isRegistered) {
+            $serializer = Serializer::create();
+            $serializeCallback = function (object $object) use ($serializer) : array {
+                return [
+                    'type' => get_debug_type($object),
+                    'serialized' => $serializer->normalize($object, new ApieContext()),
+                ];
+            };
+            $unserializeCallback = function (array $data) use ($serializer) : object {
+                return $serializer->denormalizeNewObject($data['serialized'], $data['type'], new ApieContext());
+            };
+            if (class_exists(CData::class)) {
+                register(CData::class, $serializeCallback, $unserializeCallback);
+                register(CType::class, $serializeCallback, $unserializeCallback);
+            }
+            $isRegistered = true;
+        }
+    }
+
     public function createEntityManager(): EntityManagerInterface
     {
+        $this->initOpisClosure();
         $this->isModified = false;
         if (!$this->buildOnce || $this->isEmptyPath()) {
             $this->isModified = $this->ormBuilder->createOrm($this->path);
