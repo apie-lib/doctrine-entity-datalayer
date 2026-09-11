@@ -23,7 +23,7 @@ class OrderBySearchFilter implements OrderByFilterInterface
     public function getWhereCondition(QuerySearch $querySearch, Connection $connection): string
     {
         $this->search = $querySearch->getOrderBy()[$this->filterName] ?? null;
-        return '1';
+        return EntityQuery::EMPTY_WHERE;
     }
 
     public function getOrderByCode(SortingOrder $sortingOrder): string

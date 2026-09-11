@@ -6,12 +6,14 @@ use Apie\Core\Datalayers\Search\QuerySearch;
 use Apie\Core\Entities\EntityInterface;
 use Apie\Core\IdentifierUtils;
 use Apie\DoctrineEntityDatalayer\Enums\SortingOrder;
+use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use Doctrine\ORM\EntityManagerInterface;
 use ReflectionClass;
 use Stringable;
 
 final class EntityQuery implements Stringable
 {
+    public const EMPTY_WHERE = 'true';
     /** @var array<int, EntityQueryFilterInterface> */
     private array $filters = [];
     /** @var array<int, EntityQueryFilterInterface&AddsJoinFilterInterface> */
@@ -53,8 +55,14 @@ final class EntityQuery implements Stringable
 
     public function getWithoutPagination(): string
     {
+        $distinct = 'DISTINCT';
+
+        $platform = $this->entityManager->getConnection()->getDatabasePlatform();
+        if ($platform instanceof PostgreSQLPlatform) {
+            $distinct = '';
+        }
         return sprintf(
-            "SELECT DISTINCT entity.*
+            "SELECT $distinct entity.*
             FROM apie_resource__%s_%s entity%s
 %s
 GROUP BY entity.id
@@ -93,18 +101,25 @@ ORDER BY %s",
 
     private function generateWhere(): string
     {
-        if (empty($this->filters)) {
-            return '';
-        }
         $connection = $this->entityManager->getConnection();
-        $whereSql = implode(
-            ')' . PHP_EOL . 'AND (',
+        $appliedFilters = array_filter(
             array_map(
                 function (EntityQueryFilterInterface $filter) use ($connection) {
                     return $filter->getWhereCondition($this->querySearch, $connection);
                 },
                 $this->filters
-            )
+            ),
+            function ($filterResult) {
+                return $filterResult !== self::EMPTY_WHERE;
+            }
+        );
+        if (empty($appliedFilters)) {
+            return '';
+        }
+
+        $whereSql = implode(
+            ')' . PHP_EOL . 'AND (',
+            $appliedFilters
         );
         return 'WHERE (' . $whereSql . ')';
     }

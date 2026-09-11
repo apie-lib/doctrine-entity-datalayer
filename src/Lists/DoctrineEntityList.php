@@ -100,8 +100,8 @@ final class DoctrineEntityList implements EntityListInterface
                 '/order\s+by\s+.+$/i',
                 '',
                 str_replace(
-                    ['SELECT DISTINCT entity.*', 'GROUP BY entity.id'],
-                    ['SELECT COUNT(entity.id) AS entityCount', ''],
+                    ['SELECT DISTINCT entity.*', 'SELECT  entity.*', 'GROUP BY entity.id'],
+                    ['SELECT COUNT(entity.id) AS entityCount', 'SELECT COUNT(entity.id) AS entityCount', ''],
                     $entityQuery->getWithoutPagination()
                 ),
             ),
@@ -124,8 +124,8 @@ final class DoctrineEntityList implements EntityListInterface
                 '/order\s+by\s+.+$/i',
                 '',
                 str_replace(
-                    ['SELECT DISTINCT entity.*', 'GROUP BY entity.id'],
-                    ['SELECT COUNT(entity.id) AS entityCount', ''],
+                    ['SELECT DISTINCT entity.*', 'SELECT  entity.*', 'GROUP BY entity.id'],
+                    ['SELECT COUNT(entity.id) AS entityCount', 'SELECT COUNT(entity.id) AS entityCount', ''],
                     $entityQuery->getWithoutPagination()
                 ),
             ),

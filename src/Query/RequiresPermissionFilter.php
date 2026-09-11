@@ -28,7 +28,7 @@ final class RequiresPermissionFilter implements TextSearchFilterInterface, AddsJ
     {
         $context = $querySearch->getApieContext();
         if ($context->getContext(ContextConstants::DISABLE_CONTEXT_FILTER, false)) {
-            return '1';
+            return EntityQuery::EMPTY_WHERE;
         }
         if ((new LoggedIn(PermissionInterface::class))->applies($context)) {
             $user = $context->getContext(ContextConstants::AUTHENTICATED_USER);
@@ -46,7 +46,7 @@ final class RequiresPermissionFilter implements TextSearchFilterInterface, AddsJ
             );
             return sprintf('acl.permission IN (%s)', implode(',', $query));
         }
-        return 'acl.permission IN ("")';
+        return 'acl.permission IN (\'\')';
     }
 
     public function createJoinQuery(QuerySearch $querySearch, Connection $connection): string

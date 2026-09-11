@@ -13,7 +13,7 @@ class DefaultOptionFilter implements OrderByFilterInterface
     }
     public function getWhereCondition(QuerySearch $querySearch, Connection $connection): string
     {
-        return '1';
+        return EntityQuery::EMPTY_WHERE;
     }
     public function getOrderByCode(SortingOrder $sortingOrder): string
     {

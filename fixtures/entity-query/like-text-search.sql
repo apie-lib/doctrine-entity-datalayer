@@ -6,7 +6,7 @@ JOIN (
                 WHERE text LIKE "%\\%%"
                 GROUP BY entity_id
             ) subquery ON entity.id = subquery.entity_id
-WHERE (1)
+
 GROUP BY entity.id
 ORDER BY MAX(subquery.accuracy) DESC
  LIMIT 20
