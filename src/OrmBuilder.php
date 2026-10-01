@@ -29,6 +29,8 @@ use function Opis\Closure\register;
 use Psr\Cache\CacheItemPoolInterface;
 use RecursiveDirectoryIterator;
 use ReflectionClass;
+use ReflectionMethod;
+use ReflectionProperty;
 use RuntimeException;
 
 class OrmBuilder
@@ -177,6 +179,9 @@ class OrmBuilder
                 register(CData::class, $serializeCallback, $unserializeCallback);
                 register(CType::class, $serializeCallback, $unserializeCallback);
             }
+            register(ReflectionClass::class, $serializeCallback, $unserializeCallback);
+            register(ReflectionMethod::class, $serializeCallback, $unserializeCallback);
+            register(ReflectionProperty::class, $serializeCallback, $unserializeCallback);
             $isRegistered = true;
         }
     }
