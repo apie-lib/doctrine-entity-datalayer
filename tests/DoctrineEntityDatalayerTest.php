@@ -76,6 +76,10 @@ class DoctrineEntityDatalayerTest extends TestCase
             $idBeforePersist = $entity->getId()->toNative();
             $actual = $testItem->persistNew($entity);
             $this->assertEquals($idBeforePersist, $actual->getId()->toNative());
+            $metadata = $testItem->getMetadata($entity->getId());
+            $this->assertSame('1.0.0-RC3', $metadata->createdInApieVersion);
+            $this->assertSame('1.0.0-RC3', $metadata->updatedInApieVersion);
+            $this->assertEquals($metadata->createdAt, $metadata->updatedAt);
         } finally {
             system('rm -rf '  . escapeshellarg($tempFolder));
         }
