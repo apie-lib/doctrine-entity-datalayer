@@ -37,7 +37,7 @@
   },
   "require-dev": {
     "apie/fixtures": "self.version",
-    "apie/service-provider-generator": "0.14.0",
+    "apie/service-provider-generator": "0.15.0",
     "doctrine/dbal": "^4.4.4",
     "illuminate/support": "*",
     "phpunit/phpunit": "^11.5.2",
