@@ -50,7 +50,6 @@ class OrmBuilder
         private bool $buildOnce,
         private bool $runMigrations,
         private readonly bool $devMode,
-        private readonly ?string $proxyDir,
         private readonly ?CacheItemPoolInterface $cache,
         private readonly string $path,
         array $connectionConfig,
@@ -196,14 +195,14 @@ class OrmBuilder
         }
         $path = $this->path . '/build' . $this->ormBuilder->getLastGeneratedCode($this->path)->getId();
 
-        $config = ORMSetup::createAttributeMetadataConfiguration(
+        $config = ORMSetup::createAttributeMetadataConfig(
             [$path],
             $this->devMode,
-            $this->proxyDir,
+            null,
             $this->devMode ? null : $this->cache
         );
         $config->setSchemaManagerFactory(new DefaultSchemaManagerFactory());
-        $config->setLazyGhostObjectEnabled(true);
+        $config->enableNativeLazyObjects(true);
         $config->setSchemaAssetsFilter(static function (string|AbstractAsset $assetName): bool {
             if ($assetName instanceof AbstractAsset) {
                 $assetName = $assetName->getName();

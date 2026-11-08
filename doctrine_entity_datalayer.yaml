@@ -42,7 +42,6 @@ services:
       - '%apie.doctrine.build_once%'
       - '%apie.doctrine.run_migrations%'
       - '%kernel.debug%'
-      - '%kernel.cache_dir%/apie_proxies'
       - '@?Psr\Cache\CacheItemPoolInterface'
       - '%kernel.cache_dir%/apie_entities'
       - '%apie.doctrine.connection_params%'

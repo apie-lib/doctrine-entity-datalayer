@@ -102,10 +102,9 @@ class DoctrineEntityDatalayerServiceProvider extends ServiceProvider
                     $this->parseArgument('%apie.doctrine.build_once%', \Apie\DoctrineEntityDatalayer\OrmBuilder::class, 1),
                     $this->parseArgument('%apie.doctrine.run_migrations%', \Apie\DoctrineEntityDatalayer\OrmBuilder::class, 2),
                     $this->parseArgument('%kernel.debug%', \Apie\DoctrineEntityDatalayer\OrmBuilder::class, 3),
-                    $this->parseArgument('%kernel.cache_dir%/apie_proxies', \Apie\DoctrineEntityDatalayer\OrmBuilder::class, 4),
                     $app->bound(\Psr\Cache\CacheItemPoolInterface::class) ? $app->make(\Psr\Cache\CacheItemPoolInterface::class) : null,
-                    $this->parseArgument('%kernel.cache_dir%/apie_entities', \Apie\DoctrineEntityDatalayer\OrmBuilder::class, 6),
-                    $this->parseArgument('%apie.doctrine.connection_params%', \Apie\DoctrineEntityDatalayer\OrmBuilder::class, 7),
+                    $this->parseArgument('%kernel.cache_dir%/apie_entities', \Apie\DoctrineEntityDatalayer\OrmBuilder::class, 5),
+                    $this->parseArgument('%apie.doctrine.connection_params%', \Apie\DoctrineEntityDatalayer\OrmBuilder::class, 6),
                     $app->bound('doctrine.dbal.debug_middleware.default') ? $app->make('doctrine.dbal.debug_middleware.default') : null
                 );
             }

@@ -31,9 +31,9 @@
     "apie/doctrine-entity-converter": "self.version",
     "apie/serializer": "self.version",
     "doctrine/common": "^3.5.0",
-    "doctrine/orm": "^3.6.8",
+    "doctrine/orm": "^3.7.6",
     "opis/closure": "^4.5.0",
-    "symfony/var-exporter": "^7.2"
+    "symfony/var-exporter": "^7.2|^8.0"
   },
   "require-dev": {
     "apie/fixtures": "self.version",
@@ -42,7 +42,7 @@
     "illuminate/support": "*",
     "phpunit/phpunit": "^11.5.2",
     "phpspec/prophecy-phpunit": "^2.5",
-    "symfony/cache": "^7.4"
+    "symfony/cache": "^7.4|^8.0"
   },
   "minimum-stability": "dev",
   "prefer-stable": true
